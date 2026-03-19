@@ -1,0 +1,104 @@
+.theme-toggle-btn,
+.icon-btn,
+.mini-icon-btn,
+.user-chip,
+.header-pill-btn,
+.new-project-btn,
+.logout-ghost-btn,
+.toolbar-select,
+.search-input {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+}
+
+.theme-toggle-btn,
+.icon-btn,
+.mini-icon-btn,
+.user-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.theme-toggle-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+}
+
+.icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+}
+
+.mini-icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+}
+
+.user-chip {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    overflow: hidden;
+    padding: 0;
+}
+
+.header-link-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 18px;
+}
+
+.header-pill-btn {
+    padding: 12px 24px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: var(--primary-contrast);
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.new-project-btn {
+    height: 42px;
+    border-radius: 8px;
+    color: var(--blue);
+    border-color: var(--blue);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.logout-ghost-btn {
+    margin-top: 12px;
+    height: 38px;
+    width: 100%;
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.theme-toggle-btn:hover,
+.icon-btn:hover,
+.mini-icon-btn:hover,
+.user-chip:hover,
+.header-link-btn:hover,
+.header-pill-btn:hover,
+.new-project-btn:hover,
+.logout-ghost-btn:hover {
+    transform: translateY(-1px);
+}
+
+.theme-toggle-symbol {
+    display: inline-block;
+    transition: transform 0.25s ease;
+}
+
+.theme-toggle-btn:hover .theme-toggle-symbol {
+    transform: rotate(18deg) scale(1.08);
+}

@@ -1,0 +1,799 @@
+:root {
+    --editor-header-height: 54px;
+    --editor-tabbar-height: 42px;
+
+    --editor-left-width: 304px;
+    --editor-right-width: 320px;
+    --editor-rail-width: 58px;
+
+    --editor-bg: #f5f6f8;
+    --editor-surface: #ffffff;
+    --editor-line: #d8dbe1;
+    --editor-line-dark: #c3c7cf;
+    --editor-text: #1f2430;
+    --editor-subtext: #667085;
+    --editor-blue: #4f83f1;
+    --editor-blue-soft: #edf4ff;
+
+    --editor-grid-major: rgba(0, 0, 0, 0.045);
+    --editor-grid-minor: rgba(0, 0, 0, 0.02);
+}
+
+/* 전체 페이지 */
+.editor-page {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--editor-bg);
+    color: var(--editor-text);
+    overflow: hidden;
+}
+
+/* 상단 헤더 */
+.editor-header {
+    height: var(--editor-header-height);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--editor-line);
+    background: var(--editor-surface);
+}
+
+.editor-header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.editor-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-header-btn,
+.editor-header-ghost-btn {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--editor-line-dark);
+    background: var(--editor-surface);
+    color: var(--editor-text);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.editor-header-btn:hover,
+.editor-header-ghost-btn:hover {
+    background: #f8f9fb;
+}
+
+.editor-header-primary-btn {
+    height: 36px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 10px;
+    background: var(--editor-blue);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.editor-header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: 14px;
+    color: var(--editor-subtext);
+}
+
+.editor-header-path {
+    white-space: nowrap;
+}
+
+.editor-header-current {
+    color: var(--editor-blue);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.editor-header-divider {
+    color: #98a2b3;
+}
+
+.editor-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 탭바 */
+.editor-tabbar {
+    height: var(--editor-tabbar-height);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--editor-line);
+    background: var(--editor-surface);
+}
+
+.editor-tabbar-menu-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: #555;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.editor-tabbar-menu-btn:hover {
+    background: #f3f4f6;
+}
+
+.editor-tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.editor-tab {
+    height: 32px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    background: transparent;
+    color: #555;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.editor-tab.active {
+    background: #eef4ff;
+    color: var(--editor-blue);
+    font-weight: 700;
+}
+
+.editor-tab.add {
+    color: var(--editor-blue);
+    font-weight: 700;
+}
+
+/* 본문 */
+.editor-body {
+    height: calc(100vh - var(--editor-header-height) - var(--editor-tabbar-height));
+    display: grid;
+    grid-template-columns: var(--editor-left-width) 1fr var(--editor-right-width);
+    overflow: hidden;
+}
+
+/* 좌측 */
+.editor-left-column {
+    border-right: 1px solid var(--editor-line);
+    background: var(--editor-surface);
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* 사이드바 내부 */
+.editor-sidebar-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.project-left-rail {
+    width: var(--editor-rail-width);
+    height: 100%;
+    border-right: 1px solid var(--editor-line);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    background: var(--editor-surface);
+    flex-shrink: 0;
+}
+
+.project-left-rail-btn {
+    width: 42px;
+    height: 58px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.project-left-rail-btn.active {
+    background: var(--editor-blue);
+    color: #fff;
+    font-weight: 700;
+}
+
+.project-module-panel {
+    flex: 1;
+    height: 100%;
+    padding: 8px 12px 12px;
+    overflow-y: auto;
+    background: var(--editor-surface);
+}
+
+.editor-tab-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.editor-tab-row.second,
+.editor-tab-row.third {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.editor-tab-btn {
+    height: 30px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f3f5;
+    color: #444;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.editor-tab-btn.active {
+    background: var(--editor-blue);
+    color: #fff;
+    font-weight: 700;
+}
+
+.editor-module-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.editor-module-card {
+    border: 1px solid var(--editor-line);
+    border-radius: 8px;
+    background: #fafafa;
+    padding: 6px;
+    cursor: pointer;
+    aspect-ratio: 1 / 1.2;
+}
+
+.editor-module-card.active {
+    border-color: var(--editor-blue);
+    box-shadow: 0 0 0 2px rgba(79, 131, 241, 0.14);
+}
+
+.editor-module-thumb-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* 중앙 */
+.editor-center-column {
+    background: var(--editor-bg);
+    overflow: hidden;
+    min-width: 0;
+    position: relative;
+}
+
+.editor-viewer-shell {
+    width: 100%;
+    height: 100%;
+    background: var(--editor-bg);
+}
+
+/* 캔버스 영역 */
+.project-canvas-area {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 42px 1fr;
+    background: var(--editor-bg);
+}
+
+.project-canvas-toolbar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--editor-line);
+    background: var(--editor-surface);
+    min-height: 42px;
+}
+
+.canvas-toolbar-left,
+.canvas-toolbar-center,
+.canvas-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.canvas-toolbar-center {
+    justify-content: center;
+}
+
+.canvas-switch-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #444;
+}
+
+.canvas-toggle-switch {
+    width: 38px;
+    height: 22px;
+    border: none;
+    border-radius: 999px;
+    background: #d0d5dd;
+    position: relative;
+    cursor: pointer;
+}
+
+.canvas-toggle-switch.active {
+    background: var(--editor-blue);
+}
+
+.canvas-toggle-switch::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: #fff;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+}
+
+.canvas-toggle-switch.active::after {
+    left: 19px;
+}
+
+.canvas-select {
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--editor-line-dark);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+}
+
+.editor-view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.editor-view-btn {
+    height: 30px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f3f5;
+    color: #555;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.editor-view-btn.active {
+    background: var(--editor-blue);
+    color: #fff;
+    font-weight: 700;
+}
+
+.editor-view-toggle.compact .editor-view-btn {
+    min-width: 44px;
+    padding: 0 10px;
+}
+
+.canvas-help-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid var(--editor-line-dark);
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+}
+
+.project-canvas-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+.project-editor-svg,
+.editor-canvas-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 760px;
+}
+
+.canvas-stage-grid {
+    background-color: #fbfbfb;
+    background-image:
+        linear-gradient(var(--editor-grid-major) 1px, transparent 1px),
+        linear-gradient(90deg, var(--editor-grid-major) 1px, transparent 1px),
+        linear-gradient(var(--editor-grid-minor) 1px, transparent 1px),
+        linear-gradient(90deg, var(--editor-grid-minor) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 6px 6px, 6px 6px;
+}
+
+.editor-side-tools {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 3;
+}
+
+.editor-side-tool-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--editor-line-dark);
+    background: rgba(255, 255, 255, 0.96);
+    color: #4b5563;
+    cursor: pointer;
+}
+
+/* 우측 */
+.editor-right-column {
+    border-left: 1px solid var(--editor-line);
+    background: var(--editor-surface);
+    overflow-y: auto;
+    min-width: 0;
+}
+
+.project-inspector-panel {
+    width: 100%;
+    min-height: 100%;
+    padding: 12px 12px 20px;
+    background: var(--editor-surface);
+}
+
+.inspector-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.inspector-title {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.inspector-expand-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--editor-line-dark);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.inspector-block {
+    margin-bottom: 18px;
+}
+
+.inspector-label {
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.inspector-dimension-row {
+    display: grid;
+    grid-template-columns: 18px 1fr 34px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.inspector-dimension-row label {
+    color: var(--editor-blue);
+    font-weight: 700;
+}
+
+.inspector-dimension-row input,
+.inspector-frame-input input {
+    height: 28px;
+    border: 1px solid var(--editor-line);
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 10px;
+    font-size: 12px;
+}
+
+.inspector-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.inspector-chip {
+    min-width: 58px;
+    height: 28px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f3f5;
+    color: #555;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.inspector-chip.active {
+    background: var(--editor-blue);
+    color: #fff;
+    font-weight: 700;
+}
+
+.inspector-frame-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.inspector-frame-input {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+.inspector-check-row {
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #444;
+}
+
+/* 도면 스타일 */
+.editor-center-guide {
+    stroke: #4c68ff;
+    stroke-width: 1.25;
+}
+
+.editor-floor-guide {
+    stroke: #ff6666;
+    stroke-width: 1.2;
+}
+
+.editor-room-outer {
+    fill: transparent;
+    stroke: #202020;
+    stroke-width: 1.4;
+}
+
+.editor-room-inner-reference {
+    fill: transparent;
+    stroke: #9adf88;
+    stroke-width: 1.7;
+}
+
+.editor-dim-line {
+    stroke: #232323;
+    stroke-width: 1.15;
+}
+
+.editor-dim-line.thin {
+    stroke-width: 0.95;
+}
+
+.editor-dim-text {
+    fill: #353535;
+    font-size: 10px;
+}
+
+.editor-dim-text.strong {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.editor-small-text {
+    fill: #444;
+    font-size: 9px;
+}
+
+/* 반응형 */
+@media (max-width: 1440px) {
+    :root {
+        --editor-left-width: 284px;
+        --editor-right-width: 300px;
+    }
+}
+
+@media (max-width: 1280px) {
+    :root {
+        --editor-left-width: 264px;
+        --editor-right-width: 280px;
+    }
+
+    .editor-header-center {
+        display: none;
+    }
+}
+
+.editor-slot-divider {
+    stroke: #8fc2ff;
+    stroke-width: 1.05;
+    stroke-dasharray: 4 4;
+}
+
+.editor-slot-width-text {
+    fill: #78a8ea;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.editor-side-tools {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 3;
+}
+
+.editor-side-tool-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--editor-line-dark);
+    background: rgba(255, 255, 255, 0.96);
+    color: #4b5563;
+    cursor: pointer;
+}
+
+.editor-side-tool-btn:hover {
+    background: #fff;
+}
+
+.editor-slot-hitbox {
+    fill: transparent;
+    cursor: pointer;
+}
+
+.editor-slot-hitbox.selected {
+    fill: rgba(79, 131, 241, 0.08);
+}
+
+.module-figure-outer {
+    fill: transparent;
+    stroke: #4b4b4b;
+    stroke-width: 1.4;
+}
+
+.module-figure-line {
+    stroke: #666;
+    stroke-width: 1.1;
+}
+
+.module-hanger-line {
+    stroke: #666;
+    stroke-width: 1.8;
+}
+
+.module-drawer-box {
+    fill: transparent;
+    stroke: #666;
+    stroke-width: 1.1;
+}
+
+.module-door-line-closed {
+    stroke: #7bd06c;
+    stroke-width: 2;
+}
+
+.module-door-line-open {
+    stroke: #f59e0b;
+    stroke-width: 2;
+    stroke-dasharray: 8 6;
+}
+
+.module-door-line-removed {
+    stroke: #f59e0b;
+    stroke-width: 2;
+    stroke-dasharray: 8 6;
+}
+
+.module-name-text {
+    fill: #4b5563;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.module-remove-btn {
+    fill: #fff;
+    stroke: var(--editor-blue);
+    stroke-width: 1.8;
+    cursor: pointer;
+}
+
+.module-remove-btn-text {
+    fill: var(--editor-blue);
+    font-size: 16px;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.editor-toolbar-door-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-door-state-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-door-state-btn {
+    min-width: 64px;
+    height: 34px;
+    border: none;
+    border-radius: 999px;
+    background: #ececec;
+    color: #555;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.editor-door-state-btn.active {
+    background: var(--editor-blue);
+    color: #fff;
+}
+
+.editor-door-floating-controls {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 4;
+}
+
+.editor-toolbar-door-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.editor-room-inner-reference.floating {
+    stroke-dasharray: 8 4;
+}
+
+.module-figure-outer.floating {
+    stroke-dasharray: 6 4;
+}

@@ -1,0 +1,68 @@
+.project-browser-shell {
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+.project-browser-content {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 72px);
+}
+
+.project-browser-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.project-browser-toolbar {
+    height: 56px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 8px 14px;
+}
+
+.project-browser-toolbar-left,
+.project-browser-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.project-browser-primary-btn {
+    height: 36px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--blue);
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.project-browser-secondary-btn {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.project-browser-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.project-browser-divider {
+    color: var(--muted);
+}
+
+.project-browser-current {
+    color: var(--blue);
+    font-weight: 700;
+}

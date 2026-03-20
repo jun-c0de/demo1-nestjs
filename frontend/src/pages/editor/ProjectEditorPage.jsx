@@ -33,9 +33,9 @@ export default function ProjectEditorPage() {
                     getDesign(projectId, designId),
                 ]);
 
-                setUser(meData.user);
-                setProject(projectData.project);
-                setDesign(designData.design);
+                setUser(meData);
+                setProject(projectData);
+                setDesign(designData);
             } catch (error) {
                 console.error(error);
                 clearToken();

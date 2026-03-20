@@ -28,9 +28,9 @@ export default function ProjectBrowserPage() {
                     getDesignsByProject(projectId),
                 ]);
 
-                setUser(meData.user);
-                setProject(projectData.project);
-                setItems(designData.designs || []);
+                setUser(meData);
+                setProject(projectData);
+                setItems(Array.isArray(designData) ? designData : []);
             } catch (error) {
                 clearToken();
                 navigate("/auth?mode=login", { replace: true });
@@ -52,8 +52,10 @@ export default function ProjectBrowserPage() {
 
         try {
             const data = await createDesign(projectId, { name: trimmedName });
-            setItems((prev) => [data.design, ...prev]);
-            navigate(`/projects/${projectId}/designs/${data.design.id}`);
+            setItems((prev) => [data, ...prev]);
+            setIsCreateDesignModalOpen(false);
+            setDesignName("");
+            navigate(`/projects/${projectId}/designs/${data.id}`);
         } catch (error) {
             alert(error.message);
         }
@@ -62,6 +64,10 @@ export default function ProjectBrowserPage() {
     function handleLogout() {
         clearToken();
         navigate("/", { replace: true });
+    }
+
+    function goDashboardMenu(menu) {
+        navigate(`/dashboard?menu=${menu}`);
     }
 
     if (isLoading || !user || !project) {
@@ -114,30 +120,46 @@ export default function ProjectBrowserPage() {
                     <div className="sidebar-section-title">빠른 액세스</div>
 
                     <nav className="sidebar-nav">
-                        <button type="button" className="sidebar-item">
+                        <button
+                            type="button"
+                            className="sidebar-item sidebar-item-active"
+                            onClick={() => goDashboardMenu("active")}
+                        >
                             <span>진행중 프로젝트</span>
                         </button>
-                        <button type="button" className="sidebar-item">
+
+                        <button
+                            type="button"
+                            className="sidebar-item"
+                            onClick={() => goDashboardMenu("completed")}
+                        >
                             <span>완료된 프로젝트</span>
                         </button>
-                        <button type="button" className="sidebar-item">
+
+                        <button
+                            type="button"
+                            className="sidebar-item"
+                            onClick={() => goDashboardMenu("sharedWithMe")}
+                        >
                             <span>공유받은 파일</span>
                         </button>
-                        <button type="button" className="sidebar-item">
+
+                        <button
+                            type="button"
+                            className="sidebar-item"
+                            onClick={() => goDashboardMenu("sharedByMe")}
+                        >
                             <span>공유한 파일</span>
                         </button>
-                        <button type="button" className="sidebar-item">
+
+                        <button
+                            type="button"
+                            className="sidebar-item"
+                            onClick={() => goDashboardMenu("trash")}
+                        >
                             <span>휴지통</span>
                         </button>
                     </nav>
-
-                    <div className="sidebar-user-box">
-                        <div className="sidebar-user-name">{user.name}</div>
-                        <div className="sidebar-user-email">{user.email}</div>
-                        <button type="button" className="logout-ghost-btn" onClick={handleLogout}>
-                            로그아웃
-                        </button>
-                    </div>
                 </aside>
 
                 <main className="project-browser-main">
@@ -156,14 +178,13 @@ export default function ProjectBrowserPage() {
                                 className="project-browser-secondary-btn"
                                 onClick={() => alert("새 폴더는 다음 단계에서 추가할게요.")}
                             >
-                                ⊕ 새 폴더
+                                ＋ 새 폴더
                             </button>
 
-                            <button type="button" className="mini-icon-btn">‹</button>
-                            <button type="button" className="mini-icon-btn">›</button>
-
                             <div className="project-browser-breadcrumb">
-                                <span className="toolbar-pill">진행중 프로젝트</span>
+                                <span className="project-browser-breadcrumb-root">내 프로젝트</span>
+                                <span className="project-browser-divider">›</span>
+                                <span className="project-browser-breadcrumb-section">진행중 프로젝트</span>
                                 <span className="project-browser-divider">›</span>
                                 <span className="project-browser-current">{project.title}</span>
                             </div>
@@ -171,6 +192,7 @@ export default function ProjectBrowserPage() {
 
                         <div className="project-browser-toolbar-right">
                             <input className="search-input" placeholder="검색..." />
+
                             <select className="toolbar-select" defaultValue="보통 아이콘">
                                 <option>아주 큰 아이콘</option>
                                 <option>큰 아이콘</option>
@@ -179,6 +201,7 @@ export default function ProjectBrowserPage() {
                                 <option>자세히</option>
                                 <option>타일</option>
                             </select>
+
                             <select className="toolbar-select" defaultValue="수정일순">
                                 <option>수정일순</option>
                                 <option>이름순</option>
@@ -187,7 +210,9 @@ export default function ProjectBrowserPage() {
                         </div>
                     </div>
 
-                    <ProjectItemGrid projectId={projectId} items={items} />
+                    <div className="project-browser-grid-wrap">
+                        <ProjectItemGrid projectId={projectId} items={items} />
+                    </div>
                 </main>
             </div>
 

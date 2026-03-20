@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router";
 import ProjectContextMenu from "./ProjectContextMenu";
 
 function formatDate(dateString) {
@@ -24,13 +23,16 @@ export default function ProjectCard({
     onMoveToTrash,
     onDuplicate,
     onPermanentDelete,
+    onOpenProject,
 }) {
-    const navigate = useNavigate();
+    function handleOpenProject() {
+        onOpenProject?.(project);
+    }
 
     return (
         <div
             className="project-card"
-            onClick={() => navigate(`/projects/${project.id}`)}
+            onClick={handleOpenProject}
             onContextMenu={(e) => {
                 e.preventDefault();
                 onToggleMenu((prev) => (prev === project.id ? null : project.id));

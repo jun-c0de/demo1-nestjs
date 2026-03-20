@@ -8,19 +8,34 @@ export default function DashboardToolbar({
     onViewModeChange,
     sortMode,
     onSortModeChange,
+    isBrowserMode = false,
+    projectTitle = "",
+    onCreateDesign,
+    onCreateFolder,
 }) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    // 이미지(f0d5a9) 속 항목 반영
     const subProjects = [
         { name: "ㅇㅇ", date: "2026.03.19" },
         { name: "새 프로젝트 1", date: "2026.03.18" },
-        { name: "디자인 시안", date: "2026.03.15" }
+        { name: "디자인 시안", date: "2026.03.15" },
     ];
 
     return (
         <div className="dashboard-toolbar">
             <div className="toolbar-left">
+                {isBrowserMode && (
+                    <div className="browser-action-group">
+                        <button type="button" className="new-design-btn" onClick={onCreateDesign}>
+                            + 새 디자인
+                        </button>
+
+                        <button type="button" className="new-folder-btn" onClick={onCreateFolder}>
+                            + 새 폴더
+                        </button>
+                    </div>
+                )}
+
                 <div className="nav-controls">
                     <button type="button" className="nav-btn" title="뒤로">‹</button>
                     <button type="button" className="nav-btn" title="앞으로">›</button>
@@ -28,28 +43,47 @@ export default function DashboardToolbar({
                 </div>
 
                 <div className="address-bar-container">
-                    <div className="address-bar" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                    <div className="address-bar" onClick={() => !isBrowserMode && setIsDropdownOpen(!isDropdownOpen)}>
                         <div className="address-path">
-                            <span className="address-icon">📂</span>
-                            <span className="path-segment">내 프로젝트</span>
-                            <span className="path-separator">›</span>
-                            <span className="path-segment active">{currentSectionTitle}</span>
+                            <span className="address-icon">📁</span>
+
+                            {!isBrowserMode ? (
+                                <>
+                                    <span className="path-segment">내 프로젝트</span>
+                                    <span className="path-separator">›</span>
+                                    <span className="path-segment active">{currentSectionTitle}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="path-segment">진행중 프로젝트</span>
+                                    <span className="path-separator">›</span>
+                                    <span className="path-segment active">{projectTitle}</span>
+                                </>
+                            )}
                         </div>
-                        <button className="address-arrow-btn">
-                            <span className={`arrow-icon ${isDropdownOpen ? 'open' : ''}`}>⌵</span>
+
+                        <button
+                            type="button"
+                            className="address-arrow-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!isBrowserMode) {
+                                    setIsDropdownOpen((prev) => !prev);
+                                }
+                            }}
+                        >
+                            <span className={`arrow-icon ${isDropdownOpen ? "open" : ""}`}>⌵</span>
                         </button>
                     </div>
 
-                    {/* 드롭다운: 주소창 바로 아래에 너비를 맞춰서 표시 */}
-                    {isDropdownOpen && (
+                    {!isBrowserMode && isDropdownOpen && (
                         <div className="address-dropdown">
                             {subProjects.map((item, idx) => (
                                 <div
                                     key={idx}
                                     className="dropdown-item"
                                     onClick={(e) => {
-                                        e.stopPropagation(); // 버블링 방지
-                                        console.log(`${item.name} 선택됨`);
+                                        e.stopPropagation();
                                         setIsDropdownOpen(false);
                                     }}
                                 >
@@ -76,21 +110,24 @@ export default function DashboardToolbar({
                     />
                 </div>
 
-                <div className="display-options">
-                    <div className="select-wrapper">
-                        <span className="select-icon">📅</span>
-                        <select className="toolbar-select" value={viewMode} onChange={(e) => onViewModeChange(e.target.value)}>
-                            <option>보통 아이콘</option>
-                            <option>목록</option>
-                            <option>자세히</option>
-                        </select>
-                    </div>
+                <select
+                    className="toolbar-select"
+                    value={viewMode}
+                    onChange={(e) => onViewModeChange(e.target.value)}
+                >
+                    <option>보통 아이콘</option>
+                    <option>목록</option>
+                    <option>자세히</option>
+                </select>
 
-                    <select className="toolbar-select" value={sortMode} onChange={(e) => onSortModeChange(e.target.value)}>
-                        <option>수정일순</option>
-                        <option>이름순</option>
-                    </select>
-                </div>
+                <select
+                    className="toolbar-select"
+                    value={sortMode}
+                    onChange={(e) => onSortModeChange(e.target.value)}
+                >
+                    <option>수정일순</option>
+                    <option>이름순</option>
+                </select>
             </div>
         </div>
     );

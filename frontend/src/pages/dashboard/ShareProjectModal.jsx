@@ -19,7 +19,7 @@ export default function ShareProjectModal({
         try {
             setIsLoading(true);
             const data = await getProjectShares(project.id);
-            setShares(data.shares || []);
+            setShares(Array.isArray(data) ? data : []);
         } catch (error) {
             alert(error.message);
         } finally {

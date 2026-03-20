@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import {
     createProject,
@@ -9,10 +9,11 @@ import {
     getProjects,
     renameProject,
     updateProjectStatus,
+    getProject,
 } from "../../api/project";
+import { createDesign, getDesignsByProject } from "../../api/design";
 import { getSharedByMe, getSharedWithMe } from "../../api/share";
 
-// 컴포넌트 임포트
 import ThemeToggleButton from "../../components/ThemeToggleButton";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardToolbar from "./DashboardToolbar";
@@ -20,8 +21,9 @@ import ProjectGrid from "./ProjectGrid";
 import CreateProjectModal from "./CreateProjectModal";
 import RenameProjectModal from "./RenameProjectModal";
 import ShareProjectModal from "./ShareProjectModal";
+import CreateDesignModal from "../project/CreateDesignModal";
+import ProjectItemGrid from "../project/ProjectItemGrid";
 
-// 헬퍼 함수들
 function mapSortLabelToQuery(sortMode) {
     if (sortMode === "이름순") return "name_asc";
     if (sortMode === "종류순") return "fileCount_desc";
@@ -36,6 +38,9 @@ function mapSidebarToStatus(sidebarMenu) {
 
 export default function DashboardPage() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const projectId = searchParams.get("projectId");
+
     const { user, logoutUser, loading: authLoading } = useAuth();
 
     const [projects, setProjects] = useState([]);
@@ -53,29 +58,40 @@ export default function DashboardPage() {
     const [searchKeyword, setSearchKeyword] = useState("");
     const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
+    const [selectedProject, setSelectedProject] = useState(null);
+    const [projectDesigns, setProjectDesigns] = useState([]);
+    const [isLoadingBrowser, setIsLoadingBrowser] = useState(false);
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [projectTitle, setProjectTitle] = useState("");
+
+    const [isCreateDesignModalOpen, setIsCreateDesignModalOpen] = useState(false);
+    const [designName, setDesignName] = useState("");
 
     const [openMenuProjectId, setOpenMenuProjectId] = useState(null);
     const [renameTarget, setRenameTarget] = useState(null);
     const [renameValue, setRenameValue] = useState("");
     const [shareTarget, setShareTarget] = useState(null);
 
-    // 프로젝트 숫자 카운트 갱신
     async function refreshCounts() {
         try {
             const data = await getProjectCounts();
-            setCounts(data.counts || data || {
-                active: 0, completed: 0, trash: 0, sharedWithMe: 0, sharedByMe: 0
-            });
+            setCounts(
+                data.counts || data || {
+                    active: 0,
+                    completed: 0,
+                    trash: 0,
+                    sharedWithMe: 0,
+                    sharedByMe: 0,
+                }
+            );
         } catch (error) {
             console.error("Failed to fetch counts:", error);
         }
     }
 
-    // 데이터 페칭 로직
     useEffect(() => {
-        if (authLoading || !user) return;
+        if (authLoading || !user || projectId) return;
 
         async function fetchItems() {
             try {
@@ -83,22 +99,28 @@ export default function DashboardPage() {
 
                 if (activeMenu === "sharedWithMe" || activeMenu === "sharedByMe") {
                     const fetchFn = activeMenu === "sharedWithMe" ? getSharedWithMe : getSharedByMe;
+
                     const data = await fetchFn({
                         search: searchKeyword,
                         sort: mapSortLabelToQuery(sortMode),
                     });
 
-                    const mapped = (data.items || []).map((item) => ({
-                        id: item.project.id,
-                        title: item.project.title,
-                        fileCount: item.project.fileCount,
-                        createdAt: item.project.createdAt,
-                        updatedAt: item.project.updatedAt,
-                        shareId: item.id,
-                        shareType: activeMenu === "sharedWithMe" ? "withMe" : "byMe",
-                        ownerName: item.owner?.name || item.sharedWith?.name || "",
-                        ownerEmail: item.owner?.email || item.sharedWith?.email || "",
-                    }));
+                    const items = Array.isArray(data) ? data : data.items || [];
+
+                    const mapped = items
+                        .filter((item) => item.project)
+                        .map((item) => ({
+                            id: item.project.id,
+                            title: item.project.title,
+                            fileCount: item.project.fileCount ?? 0,
+                            createdAt: item.project.createdAt,
+                            updatedAt: item.project.updatedAt,
+                            shareId: item.id,
+                            shareType: activeMenu === "sharedWithMe" ? "withMe" : "byMe",
+                            ownerName: item.owner?.name || item.sharedWith?.name || "",
+                            ownerEmail: item.owner?.email || item.sharedWith?.email || "",
+                        }));
+
                     setProjects(mapped);
                     return;
                 }
@@ -120,16 +142,42 @@ export default function DashboardPage() {
 
         const timeout = setTimeout(fetchItems, 300);
         return () => clearTimeout(timeout);
-    }, [user, authLoading, activeMenu, searchKeyword, sortMode]);
+    }, [user, authLoading, activeMenu, searchKeyword, sortMode, projectId]);
 
-    // 프로젝트 생성
+    useEffect(() => {
+        if (authLoading || !user || !projectId) return;
+
+        async function fetchProjectBrowserData() {
+            try {
+                setIsLoadingBrowser(true);
+
+                const [projectData, designData] = await Promise.all([
+                    getProject(projectId),
+                    getDesignsByProject(projectId),
+                ]);
+
+                setSelectedProject(projectData.project || projectData);
+                setProjectDesigns(Array.isArray(designData) ? designData : []);
+            } catch (error) {
+                console.error("Project browser fetch error:", error);
+                const next = new URLSearchParams(searchParams);
+                next.delete("projectId");
+                setSearchParams(next);
+            } finally {
+                setIsLoadingBrowser(false);
+            }
+        }
+
+        fetchProjectBrowserData();
+    }, [authLoading, user, projectId, searchParams, setSearchParams]);
+
     async function handleCreateProject() {
         const trimmedTitle = projectTitle.trim();
         if (!trimmedTitle) return alert("이름을 입력해주세요.");
 
         try {
             const data = await createProject({ title: trimmedTitle });
-            if (activeMenu === "active") {
+            if (activeMenu === "active" && !projectId) {
                 setProjects((prev) => [data.project || data, ...prev]);
             }
             await refreshCounts();
@@ -140,7 +188,24 @@ export default function DashboardPage() {
         }
     }
 
-    // 상태 변경
+    async function handleCreateDesign() {
+        const trimmedName = designName.trim();
+        if (!trimmedName || !projectId) {
+            alert("디자인 이름을 입력해주세요.");
+            return;
+        }
+
+        try {
+            const data = await createDesign(projectId, { name: trimmedName });
+            setProjectDesigns((prev) => [data, ...prev]);
+            setIsCreateDesignModalOpen(false);
+            setDesignName("");
+            navigate(`/projects/${projectId}/designs/${data.id}`);
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
     async function handleMoveStatus(projectId, status) {
         try {
             await updateProjectStatus(projectId, { status });
@@ -152,7 +217,6 @@ export default function DashboardPage() {
         }
     }
 
-    // 영구 삭제
     async function handlePermanentDelete(projectId) {
         if (!window.confirm("영구 삭제하시겠습니까?")) return;
         try {
@@ -165,11 +229,10 @@ export default function DashboardPage() {
         }
     }
 
-    // 복제
     async function handleDuplicate(projectId) {
         try {
             const data = await duplicateProject(projectId);
-            if (activeMenu === "active") {
+            if (activeMenu === "active" && !projectId) {
                 setProjects((prev) => [data.project || data, ...prev]);
             }
             await refreshCounts();
@@ -179,7 +242,6 @@ export default function DashboardPage() {
         }
     }
 
-    // 이름 변경 제출
     async function handleRenameSubmit() {
         const trimmedTitle = renameValue.trim();
         if (!trimmedTitle || !renameTarget) return;
@@ -195,16 +257,30 @@ export default function DashboardPage() {
         }
     }
 
+    function handleOpenProject(project) {
+        setSearchParams({ projectId: project.id });
+    }
+
+    function handleBackToDashboard() {
+        const next = new URLSearchParams(searchParams);
+        next.delete("projectId");
+        setSearchParams(next);
+        setSelectedProject(null);
+        setProjectDesigns([]);
+    }
+
     const currentSectionTitle = useMemo(() => {
+        if (projectId && selectedProject) return selectedProject.title;
+
         const titles = {
             completed: "완료된 프로젝트",
             trash: "휴지통",
             sharedWithMe: "공유받은 파일",
             sharedByMe: "공유한 파일",
-            active: "진행중 프로젝트"
+            active: "진행중 프로젝트",
         };
         return titles[activeMenu] || "프로젝트";
-    }, [activeMenu]);
+    }, [activeMenu, projectId, selectedProject]);
 
     if (authLoading) {
         return (
@@ -231,9 +307,25 @@ export default function DashboardPage() {
 
                     <div className="user-profile-header">
                         {user?.picture ? (
-                            <img src={user.picture} alt="profile" className="header-avatar" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                            <img
+                                src={user.picture}
+                                alt="profile"
+                                className="header-avatar"
+                                style={{ width: "32px", height: "32px", borderRadius: "50%" }}
+                            />
                         ) : (
-                            <div className="header-avatar-fallback" style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div
+                                className="header-avatar-fallback"
+                                style={{
+                                    width: "32px",
+                                    height: "32px",
+                                    borderRadius: "50%",
+                                    backgroundColor: "#ccc",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
                                 {user?.name?.charAt(0)}
                             </div>
                         )}
@@ -246,7 +338,10 @@ export default function DashboardPage() {
                     user={user}
                     counts={counts}
                     activeMenu={activeMenu}
-                    onMenuChange={setActiveMenu}
+                    onMenuChange={(menu) => {
+                        handleBackToDashboard();
+                        setActiveMenu(menu);
+                    }}
                     onCreateProject={() => setIsCreateModalOpen(true)}
                     onLogout={logoutUser}
                 />
@@ -260,37 +355,57 @@ export default function DashboardPage() {
                         onViewModeChange={setViewMode}
                         sortMode={sortMode}
                         onSortModeChange={setSortMode}
+                        isBrowserMode={!!projectId}
+                        projectTitle={selectedProject?.title || ""}
+                        onCreateDesign={() => setIsCreateDesignModalOpen(true)}
+                        onCreateFolder={() => alert("새 폴더는 다음 단계에서 추가할게요.")}
                     />
 
                     <div className="project-display-area">
-                        {!isLoadingProjects && projects.length === 0 ? (
+                        {!projectId ? (
+                            !isLoadingProjects && projects.length === 0 ? (
+                                <div className="empty-dashboard-state">
+                                    <h2 className="welcome-text">
+                                        <strong>{user?.name || "User"}</strong>님, 환영합니다!
+                                    </h2>
+                                    <p className="sub-text">나만의 가구를 디자인해보세요</p>
+                                    <button
+                                        className="main-create-btn"
+                                        onClick={() => setIsCreateModalOpen(true)}
+                                    >
+                                        + 첫 프로젝트 만들기
+                                    </button>
+                                </div>
+                            ) : (
+                                <ProjectGrid
+                                    projects={projects}
+                                    isLoading={isLoadingProjects}
+                                    viewMode={viewMode}
+                                    activeMenu={activeMenu}
+                                    openMenuProjectId={openMenuProjectId}
+                                    onToggleMenu={setOpenMenuProjectId}
+                                    onRenameClick={(p) => {
+                                        setRenameTarget(p);
+                                        setRenameValue(p.title);
+                                        setOpenMenuProjectId(null);
+                                    }}
+                                    onShareClick={(p) => {
+                                        setShareTarget(p);
+                                        setOpenMenuProjectId(null);
+                                    }}
+                                    onMoveStatus={handleMoveStatus}
+                                    onMoveToTrash={(id) => handleMoveStatus(id, "trash")}
+                                    onDuplicate={handleDuplicate}
+                                    onPermanentDelete={handlePermanentDelete}
+                                    onOpenProject={handleOpenProject}
+                                />
+                            )
+                        ) : isLoadingBrowser ? (
                             <div className="empty-dashboard-state">
-                                <h2 className="welcome-text">
-                                    <strong>{user?.name || 'User'}</strong>님, 환영합니다!
-                                </h2>
-                                <p className="sub-text">나만의 가구를 디자인해보세요</p>
-                                <button
-                                    className="main-create-btn"
-                                    onClick={() => setIsCreateModalOpen(true)}
-                                >
-                                    + 첫 프로젝트 만들기
-                                </button>
+                                <p className="sub-text">프로젝트를 불러오는 중입니다...</p>
                             </div>
                         ) : (
-                            <ProjectGrid
-                                projects={projects}
-                                isLoading={isLoadingProjects}
-                                viewMode={viewMode}
-                                activeMenu={activeMenu}
-                                openMenuProjectId={openMenuProjectId}
-                                onToggleMenu={setOpenMenuProjectId}
-                                onRenameClick={(p) => { setRenameTarget(p); setRenameValue(p.title); setOpenMenuProjectId(null); }}
-                                onShareClick={(p) => { setShareTarget(p); setOpenMenuProjectId(null); }}
-                                onMoveStatus={handleMoveStatus}
-                                onMoveToTrash={(id) => handleMoveStatus(id, "trash")}
-                                onDuplicate={handleDuplicate}
-                                onPermanentDelete={handlePermanentDelete}
-                            />
+                            <ProjectItemGrid projectId={projectId} items={projectDesigns} />
                         )}
                     </div>
                 </main>
@@ -298,7 +413,9 @@ export default function DashboardPage() {
 
             <footer className="dashboard-footer">
                 <div className="footer-left-info">
-                    <span className="footer-item">{projects.length}개 항목</span>
+                    <span className="footer-item">
+                        {projectId ? projectDesigns.length : projects.length}개 항목
+                    </span>
                 </div>
             </footer>
 
@@ -308,6 +425,18 @@ export default function DashboardPage() {
                     onChange={setProjectTitle}
                     onClose={() => setIsCreateModalOpen(false)}
                     onSubmit={handleCreateProject}
+                />
+            )}
+
+            {isCreateDesignModalOpen && (
+                <CreateDesignModal
+                    value={designName}
+                    onChange={setDesignName}
+                    onClose={() => {
+                        setIsCreateDesignModalOpen(false);
+                        setDesignName("");
+                    }}
+                    onSubmit={handleCreateDesign}
                 />
             )}
 

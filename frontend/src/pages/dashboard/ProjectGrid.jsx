@@ -17,6 +17,7 @@ export default function ProjectGrid({
     onMoveToTrash,
     onDuplicate,
     onPermanentDelete,
+    onOpenProject,
 }) {
     if (isLoading) {
         return (
@@ -51,6 +52,7 @@ export default function ProjectGrid({
                     onMoveToTrash={onMoveToTrash}
                     onDuplicate={onDuplicate}
                     onPermanentDelete={onPermanentDelete}
+                    onOpenProject={onOpenProject}
                 />
             ))}
         </div>

@@ -7,6 +7,9 @@ export class RefreshToken extends Document {
     user: Types.ObjectId;
 
     @Prop({ required: true })
+    tokenId: string;
+
+    @Prop({ required: true })
     tokenHash: string;
 
     @Prop({ required: true })
@@ -14,6 +17,9 @@ export class RefreshToken extends Document {
 
     @Prop({ default: false })
     revoked: boolean;
+
+    @Prop({ type: Date, default: null })
+    revokedAt?: Date | null;
 
     @Prop()
     userAgent?: string;

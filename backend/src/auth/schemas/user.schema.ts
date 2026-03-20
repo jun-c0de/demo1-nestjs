@@ -16,10 +16,19 @@ export class User extends Document {
     provider: string;
 
     @Prop()
+    avatar?: string;
+
+    @Prop()
     picture?: string;
 
     @Prop()
     googleId?: string;
+
+    @Prop()
+    kakaoId?: string;
+
+    @Prop()
+    naverId?: string;
 
     @Prop({ default: 'user' })
     role: string;

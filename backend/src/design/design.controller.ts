@@ -11,6 +11,8 @@ import {
 import { DesignService } from './design.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CreateDesignDto } from './dto/create-design.dto';
+import { UpdateDesignDto } from './dto/update-design.dto';
 
 @Controller('projects/:projectId/designs')
 @UseGuards(JwtAuthGuard)
@@ -21,7 +23,7 @@ export class DesignController {
   create(
     @CurrentUser('userId') userId: string,
     @Param('projectId') projectId: string,
-    @Body() body: any,
+    @Body() body: CreateDesignDto,
   ) {
     return this.designService.createDesign(userId, projectId, body);
   }
@@ -48,9 +50,9 @@ export class DesignController {
     @CurrentUser('userId') userId: string,
     @Param('projectId') projectId: string,
     @Param('id') id: string,
-    @Body() body: any,
+    @Body() body: UpdateDesignDto,
   ) {
-    return this.designService.saveDesign(userId, projectId, id, body);
+    return this.designService.updateDesign(userId, projectId, id, body);
   }
 
   @Delete(':id')

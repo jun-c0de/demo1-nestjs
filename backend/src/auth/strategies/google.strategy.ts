@@ -11,9 +11,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         private readonly configService: ConfigService,
     ) {
         super({
-            clientID: configService.get<string>('GOOGLE_CLIENT_ID')!,
-            clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
-            callbackURL: configService.get<string>('GOOGLE_REDIRECT_URI')!,
+            clientID: configService.get('GOOGLE_CLIENT_ID')!,
+            clientSecret: configService.get('GOOGLE_CLIENT_SECRET')!,
+            callbackURL: configService.get('GOOGLE_REDIRECT_URI')!,
             scope: ['email', 'profile'],
         });
     }
@@ -31,13 +31,17 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         profile: any,
         done: VerifyCallback,
     ): Promise<void> {
-        const { name, emails, photos, id } = profile;
+        const email = profile?.emails?.[0]?.value;
+        const picture = profile?.photos?.[0]?.value;
+        const familyName = profile?.name?.familyName || '';
+        const givenName = profile?.name?.givenName || '';
+        const googleId = profile?.id;
 
         const userProfile = {
-            email: emails[0].value,
-            name: `${name.familyName || ''}${name.givenName || ''}`,
-            picture: photos[0].value,
-            googleId: id,
+            email,
+            name: `${familyName}${givenName}`.trim() || profile?.displayName || 'Google User',
+            picture: picture || '',
+            googleId,
         };
 
         const meta = {

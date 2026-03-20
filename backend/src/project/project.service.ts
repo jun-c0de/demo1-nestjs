@@ -91,13 +91,21 @@ export class ProjectService {
   async getProjectCounts(userId: string) {
     const owner = new Types.ObjectId(userId);
 
-    const [active, completed, trash] = await Promise.all([
+    const [active, completed, trash, sharedWithMe, sharedByMe] = await Promise.all([
       this.projectModel.countDocuments({ owner, status: 'active' } as any),
       this.projectModel.countDocuments({ owner, status: 'completed' } as any),
       this.projectModel.countDocuments({ owner, status: 'trash' } as any),
+      this.shareModel.countDocuments({ sharedWith: owner } as any),
+      this.shareModel.countDocuments({ owner } as any),
     ]);
 
-    return { active, completed, trash };
+    return {
+      active,
+      completed,
+      trash,
+      sharedWithMe,
+      sharedByMe,
+    };
   }
 
   async getProjectById(userId: string, projectId: string) {

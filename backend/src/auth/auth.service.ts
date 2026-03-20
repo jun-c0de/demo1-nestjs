@@ -299,6 +299,7 @@ export class AuthService {
     meta: any,
   ) {
     const email = profile.email?.trim().toLowerCase();
+
     if (!email) {
       throw new UnauthorizedException('구글 계정 이메일 정보를 찾을 수 없습니다.');
     }
@@ -326,8 +327,6 @@ export class AuthService {
       await user.save();
     }
 
-    const tokens = await this.issueAuthTokens(user, meta);
-
-    return { tokens };
+    return this.issueAuthTokens(user, meta);
   }
 }

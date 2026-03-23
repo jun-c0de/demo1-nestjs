@@ -1,198 +1,377 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { clearAccessToken, getMe } from "../../api/auth";
+import { useAuth } from "../../contexts/AuthContext";
 import { getProject } from "../../api/projects";
-import { getDesign, updateDesign } from "../../api/designs";
-import ThemeToggleButton from "../../components/ThemeToggleButton";
-import { useProjectEditorStore } from "../stores/projectEditorStore";
-import ProjectEditorSidebar from "./ProjectEditorSidebar";
-import ProjectEditorCanvas from "./ProjectEditorCanvas";
-import ProjectEditorInspector from "./ProjectEditorInspector";
+import { getDesignsByProject } from "../../api/designs";
+import EditorHeader from "../../components/editor/EditorHeader";
+import EditorLeftPanel from "../../components/editor/EditorLeftPanel";
+import EditorCanvas from "../../components/editor/EditorCanvas";
+import EditorThreeCanvas from "../../components/editor/EditorThreeCanvas";
+import EditorRightPanel from "../../components/editor/EditorRightPanel";
+import "../../styles/editor.css";
 
 export default function ProjectEditorPage() {
     const navigate = useNavigate();
     const { projectId, designId } = useParams();
+    const { user } = useAuth();
 
-    const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [leftTab, setLeftTab] = useState("drawing");
+    const [workspaceView, setWorkspaceView] = useState("2D");
+    const [cameraView, setCameraView] = useState("입면");
 
-    const project = useProjectEditorStore((state) => state.project);
-    const design = useProjectEditorStore((state) => state.design);
-    const room = useProjectEditorStore((state) => state.room);
-    const editorData = useProjectEditorStore((state) => state.editorData);
+    const [projectTitle, setProjectTitle] = useState("프로젝트");
+    const [designTitle, setDesignTitle] = useState("디자인");
+    const [isLoadingNames, setIsLoadingNames] = useState(true);
 
-    const setProject = useProjectEditorStore((state) => state.setProject);
-    const setDesign = useProjectEditorStore((state) => state.setDesign);
+    const [drawingFile, setDrawingFile] = useState(null);
+    const [drawingImageUrl, setDrawingImageUrl] = useState("");
+    const [drawingOpacity, setDrawingOpacity] = useState(0.9);
+    const [drawingLocked, setDrawingLocked] = useState(false);
+
+    const [isScaleMode, setIsScaleMode] = useState(false);
+    const [scalePoints, setScalePoints] = useState([]);
+    const [pixelDistance, setPixelDistance] = useState(0);
+    const [realDistanceMm, setRealDistanceMm] = useState("");
+    const [mmPerPixel, setMmPerPixel] = useState(null);
+
+    const [isDrawMode, setIsDrawMode] = useState(false);
+    const [draftWallStart, setDraftWallStart] = useState(null);
+    const [walls, setWalls] = useState([]);
 
     useEffect(() => {
-        async function initializePage() {
+        let isMounted = true;
+
+        async function loadEditorInfo() {
             try {
-                const [meData, projectData, designData] = await Promise.all([
-                    getMe(),
+                setIsLoadingNames(true);
+
+                const [projectData, designData] = await Promise.all([
                     getProject(projectId),
-                    getDesign(projectId, designId),
+                    getDesignsByProject(projectId),
                 ]);
 
-                setUser(meData);
-                setProject(projectData);
-                setDesign(designData);
+                const resolvedProject = projectData?.project || projectData;
+                const resolvedDesigns = Array.isArray(designData)
+                    ? designData
+                    : designData?.designs || [];
+
+                const matchedDesign = resolvedDesigns.find(
+                    (item) => (item.id || item._id) === designId
+                );
+
+                if (!isMounted) return;
+
+                setProjectTitle(resolvedProject?.title || "프로젝트");
+                setDesignTitle(matchedDesign?.name || matchedDesign?.title || "디자인");
             } catch (error) {
-                console.error("Project editor load error:", error);
-                clearAccessToken();
-                navigate("/auth?mode=login", { replace: true });
+                console.error("에디터 정보 로딩 실패:", error);
+                if (!isMounted) return;
+                setProjectTitle("프로젝트");
+                setDesignTitle("디자인");
             } finally {
-                setIsLoading(false);
+                if (isMounted) {
+                    setIsLoadingNames(false);
+                }
             }
         }
 
-        if (projectId && designId) {
-            initializePage();
+        if (projectId) {
+            loadEditorInfo();
         }
-    }, [navigate, projectId, designId, setProject, setDesign]);
 
-    async function handleSave() {
-        try {
-            await updateDesign(projectId, designId, {
-                name: design?.name,
-                room,
-                editorData,
-            });
+        return () => {
+            isMounted = false;
+            if (drawingImageUrl) {
+                URL.revokeObjectURL(drawingImageUrl);
+            }
+        };
+    }, [projectId, designId, drawingImageUrl]);
 
-            alert("저장되었습니다.");
-        } catch (error) {
-            alert(error.message);
+    const breadcrumbItems = useMemo(
+        () => [
+            { key: "dashboard", label: "내 프로젝트" },
+            { key: "project", label: isLoadingNames ? "불러오는 중..." : projectTitle },
+            { key: "design", label: isLoadingNames ? "불러오는 중..." : designTitle },
+        ],
+        [projectTitle, designTitle, isLoadingNames]
+    );
+
+    const enrichedWalls = useMemo(() => {
+        return walls.map((wall, index) => {
+            const dx = wall.end.x - wall.start.x;
+            const dy = wall.end.y - wall.start.y;
+            const lengthPx = Math.sqrt(dx * dx + dy * dy);
+            const lengthMm = mmPerPixel ? lengthPx * mmPerPixel : null;
+
+            return {
+                ...wall,
+                index: index + 1,
+                lengthPx,
+                lengthMm,
+            };
+        });
+    }, [walls, mmPerPixel]);
+
+    const totalWallLengthMm = useMemo(() => {
+        return enrichedWalls.reduce((sum, wall) => sum + (wall.lengthMm || 0), 0);
+    }, [enrichedWalls]);
+
+    function handleUploadDrawing(file) {
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("현재는 JPG, PNG 같은 이미지 파일만 업로드할 수 있습니다.");
+            return;
         }
+
+        const nextUrl = URL.createObjectURL(file);
+
+        setDrawingFile(file);
+        setDrawingImageUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return nextUrl;
+        });
+        setLeftTab("drawing");
+        setScalePoints([]);
+        setPixelDistance(0);
+        setRealDistanceMm("");
+        setMmPerPixel(null);
+        setDraftWallStart(null);
+        setWalls([]);
+        setIsScaleMode(false);
+        setIsDrawMode(false);
     }
 
-    function handleExit() {
-        navigate(`/projects/${projectId}`);
+    function handleClearDrawing() {
+        setDrawingFile(null);
+        setDrawingImageUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return "";
+        });
+        setScalePoints([]);
+        setPixelDistance(0);
+        setRealDistanceMm("");
+        setMmPerPixel(null);
+        setDraftWallStart(null);
+        setWalls([]);
+        setIsScaleMode(false);
+        setIsDrawMode(false);
     }
 
-    function handleLogout() {
-        clearAccessToken();
-        navigate("/", { replace: true });
+    function handleCanvasPickScalePoint(point) {
+        if (!isScaleMode) return;
+
+        setScalePoints((prev) => {
+            if (prev.length === 0) {
+                return [point];
+            }
+
+            if (prev.length === 1) {
+                const next = [prev[0], point];
+                const dx = next[1].x - next[0].x;
+                const dy = next[1].y - next[0].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                setPixelDistance(distance);
+                return next;
+            }
+
+            setPixelDistance(0);
+            return [point];
+        });
     }
 
-    if (isLoading) {
-        return (
-            <div className="center-message-screen">
-                <div className="center-message-box">디자인 불러오는 중...</div>
-            </div>
-        );
+    function handleApplyScale() {
+        const mmValue = Number(realDistanceMm);
+
+        if (scalePoints.length !== 2) {
+            alert("먼저 기준점 2개를 찍어주세요.");
+            return;
+        }
+
+        if (!pixelDistance || pixelDistance <= 0) {
+            alert("유효한 픽셀 길이를 찾을 수 없습니다.");
+            return;
+        }
+
+        if (!mmValue || mmValue <= 0) {
+            alert("실제 길이(mm)를 입력해주세요.");
+            return;
+        }
+
+        setMmPerPixel(mmValue / pixelDistance);
+        setIsScaleMode(false);
     }
 
-    if (!user || !project || !design) {
-        return (
-            <div className="center-message-screen">
-                <div className="center-message-box">디자인 정보를 불러올 수 없습니다.</div>
-            </div>
-        );
+    function handleResetScalePoints() {
+        setScalePoints([]);
+        setPixelDistance(0);
+    }
+
+    function handleToggleScaleMode() {
+        setIsScaleMode((prev) => {
+            const next = !prev;
+            if (next) {
+                setIsDrawMode(false);
+                setDraftWallStart(null);
+            }
+            return next;
+        });
+    }
+
+    function handleToggleDrawMode() {
+        if (!mmPerPixel) {
+            alert("먼저 기준 길이를 설정해주세요.");
+            return;
+        }
+
+        setIsDrawMode((prev) => {
+            const next = !prev;
+            if (next) {
+                setIsScaleMode(false);
+            } else {
+                setDraftWallStart(null);
+            }
+            return next;
+        });
+    }
+
+    function handleCanvasPickWallPoint(point) {
+        if (!isDrawMode) return;
+
+        if (!draftWallStart) {
+            setDraftWallStart(point);
+            return;
+        }
+
+        const nextWall = {
+            id: `wall-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            start: draftWallStart,
+            end: point,
+        };
+
+        setWalls((prev) => [...prev, nextWall]);
+        setDraftWallStart(point);
+    }
+
+    function handleFinishWallDrawing() {
+        setDraftWallStart(null);
+    }
+
+    function handleRemoveWall(wallId) {
+        setWalls((prev) => prev.filter((wall) => wall.id !== wallId));
+    }
+
+    function handleClearWalls() {
+        setWalls([]);
+        setDraftWallStart(null);
     }
 
     return (
-        <div className="editor-page">
-            <header className="editor-header">
-                <div className="editor-header-left">
-                    <div
-                        className="brand-box"
-                        onClick={() => navigate("/dashboard")}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                                navigate("/dashboard");
-                            }
-                        }}
-                    >
-                        <div className="brand-dots dashboard-brand-dots">
-                            <span />
-                            <span />
-                            <span />
-                        </div>
-                        <span className="brand-text">CRAFT</span>
-                    </div>
-
-                    <div className="editor-header-actions">
-                        <button type="button" className="editor-header-btn">
-                            파일
-                        </button>
-                        <button type="button" className="editor-header-btn" onClick={handleSave}>
-                            저장
-                        </button>
-                        <button type="button" className="editor-header-btn" onClick={handleExit}>
-                            저장하고 나가기
-                        </button>
-                    </div>
-                </div>
-
-                <div className="editor-header-center">
-                    <span className="editor-header-path">◦◦</span>
-                    <span className="editor-header-divider">›</span>
-                    <span className="editor-header-path">{project.title}</span>
-                    <span className="editor-header-divider">›</span>
-                    <span className="editor-header-current">{design.name}</span>
-                </div>
-
-                <div className="editor-header-right">
-                    <button type="button" className="editor-header-ghost-btn">
-                        조작법
-                    </button>
-
-                    <button type="button" className="editor-header-primary-btn">
-                        컨버팅
-                    </button>
-
-                    <button type="button" className="user-chip" onClick={handleLogout}>
-                        {user.avatar ? (
-                            <img src={user.avatar} alt="user avatar" className="user-avatar" />
-                        ) : (
-                            <span className="user-avatar user-avatar-fallback">
-                                {user.name?.slice(0, 1).toUpperCase() || "U"}
-                            </span>
-                        )}
-                    </button>
-
-                    <button type="button" className="icon-btn">
-                        ⚙
-                    </button>
-                    <ThemeToggleButton />
-                </div>
-            </header>
-
-            <div className="editor-tabbar">
-                <button type="button" className="editor-tabbar-menu-btn">
-                    ☰
+        <div className="editor-shell">
+            <div className="editor-shell-topbar">
+                <button
+                    type="button"
+                    className="editor-shell-brand"
+                    onClick={() => navigate("/dashboard")}
+                >
+                    CRAFT
                 </button>
 
-                <div className="editor-tabs">
-                    <button type="button" className="editor-tab">
-                        ◦◦ /{project.title}
+                <div className="editor-shell-userbox">
+                    <button
+                        type="button"
+                        className="editor-shell-create-btn"
+                        onClick={() => navigate(`/projects/${projectId}`)}
+                    >
+                        프로젝트로
                     </button>
-
-                    <button type="button" className="editor-tab active">
-                        ◦◦ /{design.name} ✕
-                    </button>
-
-                    <button type="button" className="editor-tab add" onClick={handleExit}>
-                        ＋ 디자인 생성
-                    </button>
+                    <div className="editor-shell-avatar">
+                        {user?.name?.[0] || "U"}
+                    </div>
                 </div>
             </div>
 
-            <div className="editor-body">
-                <aside className="editor-left-column">
-                    <ProjectEditorSidebar />
-                </aside>
+            <div className="editor-shell-body">
+                <EditorHeader
+                    breadcrumbs={breadcrumbItems}
+                    workspaceView={workspaceView}
+                    onChangeWorkspaceView={setWorkspaceView}
+                    cameraView={cameraView}
+                    onChangeCameraView={setCameraView}
+                    onGoDashboard={() => navigate("/dashboard")}
+                    onSave={() => alert("저장 기능은 다음 단계에서 연결합니다.")}
+                    onExit={() => navigate(`/projects/${projectId}`)}
+                />
 
-                <section className="editor-center-column">
-                    <div className="editor-viewer-shell">
-                        <ProjectEditorCanvas />
-                    </div>
-                </section>
+                <div className="editor-workspace">
+                    <EditorLeftPanel
+                        activeTab={leftTab}
+                        onChangeTab={setLeftTab}
+                        drawingFile={drawingFile}
+                        drawingImageUrl={drawingImageUrl}
+                        drawingLocked={drawingLocked}
+                        drawingOpacity={drawingOpacity}
+                        onUploadDrawing={handleUploadDrawing}
+                        onClearDrawing={handleClearDrawing}
+                        onToggleLocked={() => setDrawingLocked((prev) => !prev)}
+                        onChangeOpacity={setDrawingOpacity}
+                        isScaleMode={isScaleMode}
+                        onToggleScaleMode={handleToggleScaleMode}
+                        scalePoints={scalePoints}
+                        pixelDistance={pixelDistance}
+                        realDistanceMm={realDistanceMm}
+                        onChangeRealDistanceMm={setRealDistanceMm}
+                        onApplyScale={handleApplyScale}
+                        onResetScalePoints={handleResetScalePoints}
+                        mmPerPixel={mmPerPixel}
+                        isDrawMode={isDrawMode}
+                        onToggleDrawMode={handleToggleDrawMode}
+                        onFinishWallDrawing={handleFinishWallDrawing}
+                        draftWallStart={draftWallStart}
+                        wallCount={enrichedWalls.length}
+                        onClearWalls={handleClearWalls}
+                    />
 
-                <aside className="editor-right-column">
-                    <ProjectEditorInspector />
-                </aside>
+                    {workspaceView === "2D" ? (
+                        <EditorCanvas
+                            drawingImageUrl={drawingImageUrl}
+                            drawingOpacity={drawingOpacity}
+                            drawingLocked={drawingLocked}
+                            workspaceView={workspaceView}
+                            cameraView={cameraView}
+                            isScaleMode={isScaleMode}
+                            scalePoints={scalePoints}
+                            onPickScalePoint={handleCanvasPickScalePoint}
+                            isDrawMode={isDrawMode}
+                            draftWallStart={draftWallStart}
+                            onPickWallPoint={handleCanvasPickWallPoint}
+                            walls={enrichedWalls}
+                            mmPerPixel={mmPerPixel}
+                        />
+                    ) : (
+                        <EditorThreeCanvas
+                            walls={enrichedWalls}
+                            mmPerPixel={mmPerPixel}
+                            wallHeightMm={2400}
+                            wallThicknessMm={120}
+                        />
+                    )}
+
+                    <EditorRightPanel
+                        drawingFile={drawingFile}
+                        drawingLocked={drawingLocked}
+                        drawingOpacity={drawingOpacity}
+                        workspaceView={workspaceView}
+                        cameraView={cameraView}
+                        mmPerPixel={mmPerPixel}
+                        pixelDistance={pixelDistance}
+                        realDistanceMm={realDistanceMm}
+                        walls={enrichedWalls}
+                        totalWallLengthMm={totalWallLengthMm}
+                        onRemoveWall={handleRemoveWall}
+                        onClearWalls={handleClearWalls}
+                    />
+                </div>
             </div>
         </div>
     );

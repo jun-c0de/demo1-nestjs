@@ -33,7 +33,16 @@ async function bootstrap() {
     .setTitle('Demo API Documentation')
     .setDescription('Express에서 NestJS로 이식한 API 문서입니다.')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+        name: 'Authorization',
+      },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

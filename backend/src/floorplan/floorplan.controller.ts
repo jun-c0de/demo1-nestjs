@@ -13,6 +13,9 @@ import { FloorplanService } from './floorplan.service';
 import { CreateFloorplanDto } from './dto/create-floorplan.dto';
 import { CalibrateFloorplanDto } from './dto/calibrate-floorplan.dto';
 
+import { ApiBearerAuth } from '@nestjs/swagger';
+
+@ApiBearerAuth('access-token')
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class FloorplanController {

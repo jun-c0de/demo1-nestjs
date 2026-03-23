@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getProjectShares, shareProject, unshareProject } from "../../api/share";
+import { getProjectShares, shareProject, unshareProject } from "../../api/shares";
 
 function permissionLabel(permission) {
     return permission === "editor" ? "편집 가능" : "조회 가능";

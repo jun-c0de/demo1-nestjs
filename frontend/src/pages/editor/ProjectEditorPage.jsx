@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { clearToken, getMe } from "../../api/auth";
-import { getProject } from "../../api/project";
-import { getDesign, updateDesign } from "../../api/design";
+import { getProject } from "../../api/projects";
+import { getDesign, updateDesign } from "../../api/designs";
 import ThemeToggleButton from "../../components/ThemeToggleButton";
 import { useProjectEditorStore } from "../stores/projectEditorStore";
 import ProjectEditorSidebar from "./ProjectEditorSidebar";

@@ -1,23 +1,34 @@
-import api from './index';
+import http from "./http";
 
-export const setToken = (token) => localStorage.setItem('accessToken', token);
-export const clearToken = () => localStorage.removeItem('accessToken');
+export function setAccessToken(token) {
+    localStorage.setItem("accessToken", token);
+}
+
+export function clearAccessToken() {
+    localStorage.removeItem("accessToken");
+}
 
 export async function signup(payload) {
-    const data = await api.post('/auth/signup', payload);
-    if (data.accessToken) setToken(data.accessToken);
+    const data = await http.post("/auth/signup", payload);
+    if (data?.accessToken) setAccessToken(data.accessToken);
     return data;
 }
 
 export async function login(payload) {
-    const data = await api.post('/auth/login', payload);
-    if (data.accessToken) setToken(data.accessToken);
+    const data = await http.post("/auth/login", payload);
+    if (data?.accessToken) setAccessToken(data.accessToken);
     return data;
 }
 
-export const getMe = () => api.get('/auth/me');
-
 export async function logout() {
-    await api.post('/auth/logout');
-    clearToken();
+    await http.post("/auth/logout");
+    clearAccessToken();
+}
+
+export async function getMe() {
+    return http.get("/auth/me");
+}
+
+export function getGoogleLoginUrl() {
+    return `${import.meta.env.VITE_API_BASE_URL}/api/auth/google`;
 }

@@ -1,47 +1,67 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { getMe, clearToken } from '../api/auth';
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { clearAccessToken, getMe, logout } from "../api/auth";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(true);
 
-    // 앱이 처음 켜질 때 로그인 상태를 확인
-    const checkAuth = async () => {
-        const token = localStorage.getItem('accessToken');
+    async function bootstrapAuth() {
+        const token = localStorage.getItem("accessToken");
         if (!token) {
-            setLoading(false);
+            setAuthLoading(false);
             return;
         }
 
         try {
-            const data = await getMe();
-            setUser(data); // 전역 유저 상태 저장
-        } catch (err) {
-            console.error('인증 실패:', err);
-            clearToken();
+            const me = await getMe();
+            setUser(me);
+        } catch (error) {
+            clearAccessToken();
             setUser(null);
         } finally {
-            setLoading(false);
+            setAuthLoading(false);
         }
-    };
+    }
+
+    async function loginUser(nextUser, accessToken) {
+        if (accessToken) {
+            localStorage.setItem("accessToken", accessToken);
+        }
+        setUser(nextUser);
+    }
+
+    async function logoutUser() {
+        try {
+            await logout();
+        } catch (_) {
+            clearAccessToken();
+        } finally {
+            setUser(null);
+            window.location.href = "/";
+        }
+    }
 
     useEffect(() => {
-        checkAuth();
+        bootstrapAuth();
     }, []);
 
-    const logoutUser = () => {
-        clearToken();
-        setUser(null);
-        window.location.href = '/'; // 홈으로 리다이렉트
-    };
-
-    return (
-        <AuthContext.Provider value={{ user, setUser, loading, logoutUser, checkAuth }}>
-            {!loading && children}
-        </AuthContext.Provider>
+    const value = useMemo(
+        () => ({
+            user,
+            setUser,
+            authLoading,
+            loginUser,
+            logoutUser,
+            isAuthenticated: !!user,
+        }),
+        [user, authLoading]
     );
-};
 
-export const useAuth = () => useContext(AuthContext);
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+    return useContext(AuthContext);
+}

@@ -10,9 +10,9 @@ import {
     renameProject,
     updateProjectStatus,
     getProject,
-} from "../../api/project";
-import { createDesign, getDesignsByProject } from "../../api/design";
-import { getSharedByMe, getSharedWithMe } from "../../api/share";
+} from "../../api/projects";
+import { createDesign, getDesignsByProject } from "../../api/designs";
+import { getSharedByMe, getSharedWithMe } from "../../api/shares";
 
 import ThemeToggleButton from "../../components/ThemeToggleButton";
 import DashboardSidebar from "./DashboardSidebar";

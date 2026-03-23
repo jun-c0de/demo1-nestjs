@@ -8,6 +8,8 @@ import { DesignModule } from './design/design.module';
 import { ShareModule } from './share/share.module';
 import { FloorplanModule } from './floorplan/floorplan.module';
 import { RoomModule } from './room/room.module';
+import { MaterialModule } from './material/material.module';
+import { EstimateModule } from './estimate/estimate.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { RoomModule } from './room/room.module';
     ShareModule,
     FloorplanModule,
     RoomModule,
+    MaterialModule,
+    EstimateModule,
   ],
 })
 export class AppModule { }

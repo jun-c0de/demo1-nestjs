@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { clearToken, getMe } from "../../api/auth";
-import { getProject } from "../../api/project";
-import { createDesign, getDesignsByProject } from "../../api/design";
+import { getProject } from "../../api/projects";
+import { createDesign, getDesignsByProject } from "../../api/designs";
 import ThemeToggleButton from "../../components/ThemeToggleButton";
 import CreateDesignModal from "./CreateDesignModal";
 import ProjectItemGrid from "./ProjectItemGrid";

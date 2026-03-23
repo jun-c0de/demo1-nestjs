@@ -85,9 +85,15 @@ export class RoomService {
             throw new NotFoundException('방을 찾을 수 없습니다.');
         }
 
-        if (dto.floorMaterialId !== undefined) doc.floorMaterialId = dto.floorMaterialId;
-        if (dto.wallMaterialId !== undefined) doc.wallMaterialId = dto.wallMaterialId;
-        if (dto.ceilingMaterialId !== undefined) doc.ceilingMaterialId = dto.ceilingMaterialId;
+        if (dto.floorMaterialId !== undefined) {
+            doc.floorMaterialId = dto.floorMaterialId;
+        }
+        if (dto.wallMaterialId !== undefined) {
+            doc.wallMaterialId = dto.wallMaterialId;
+        }
+        if (dto.ceilingMaterialId !== undefined) {
+            doc.ceilingMaterialId = dto.ceilingMaterialId;
+        }
 
         await doc.save();
         return this.toDto(doc);

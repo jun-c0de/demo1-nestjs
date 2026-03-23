@@ -1,15 +1,15 @@
 import { useState } from "react";
 
 export default function DashboardToolbar({
-    currentSectionTitle,
+    title,
     searchKeyword,
-    onSearchChange,
+    onChangeSearchKeyword,
     viewMode,
-    onViewModeChange,
+    onChangeViewMode,
     sortMode,
-    onSortModeChange,
+    onChangeSortMode,
 }) {
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isBreadcrumbOpen, setIsBreadcrumbOpen] = useState(false);
 
     const subProjects = [
         { name: "ㅇㅇ", date: "2026.03.19" },
@@ -19,88 +19,90 @@ export default function DashboardToolbar({
 
     return (
         <div className="dashboard-toolbar">
-            <div className="toolbar-left">
-                <div className="nav-controls">
-                    <button type="button" className="nav-btn" title="뒤로">‹</button>
-                    <button type="button" className="nav-btn" title="앞으로">›</button>
-                    <button type="button" className="nav-btn" title="상위 폴더">↑</button>
-                </div>
+            <div className="dashboard-toolbar__left">
+                <button
+                    type="button"
+                    className="dashboard-toolbar__nav-btn"
+                    aria-label="뒤로"
+                >
+                    ‹
+                </button>
+                <button
+                    type="button"
+                    className="dashboard-toolbar__nav-btn"
+                    aria-label="앞으로"
+                >
+                    ›
+                </button>
+                <button
+                    type="button"
+                    className="dashboard-toolbar__nav-btn"
+                    aria-label="위로"
+                >
+                    ↑
+                </button>
 
-                <div className="address-bar-container">
-                    <div
-                        className="address-bar"
-                        onClick={() => setIsDropdownOpen((prev) => !prev)}
+                <div className="dashboard-toolbar__breadcrumb-wrap">
+                    <button
+                        type="button"
+                        className="dashboard-toolbar__breadcrumb"
+                        onClick={() => setIsBreadcrumbOpen((prev) => !prev)}
                     >
-                        <div className="address-path">
-                            <span className="address-icon">📁</span>
-                            <span className="path-segment">내 프로젝트</span>
-                            <span className="path-separator">›</span>
-                            <span className="path-segment active">{currentSectionTitle}</span>
-                        </div>
+                        <span className="dashboard-toolbar__title">내 프로젝트</span>
+                        <span className="dashboard-toolbar__breadcrumb-sep">›</span>
+                        <span className="dashboard-toolbar__title is-current">{title}</span>
+                        <span className="dashboard-toolbar__caret">⌵</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            className="address-arrow-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsDropdownOpen((prev) => !prev);
-                            }}
-                        >
-                            <span className={`arrow-icon ${isDropdownOpen ? "open" : ""}`}>⌵</span>
-                        </button>
-                    </div>
-
-                    {isDropdownOpen && (
-                        <div className="address-dropdown">
+                    {isBreadcrumbOpen && (
+                        <div className="dashboard-toolbar__dropdown">
                             {subProjects.map((item, idx) => (
-                                <div
+                                <button
                                     key={`${item.name}-${idx}`}
-                                    className="dropdown-item"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsDropdownOpen(false);
-                                    }}
+                                    type="button"
+                                    className="dashboard-toolbar__dropdown-item"
+                                    onClick={() => setIsBreadcrumbOpen(false)}
                                 >
-                                    <div className="dropdown-item-content">
-                                        <span className="item-icon">📄</span>
-                                        <span className="item-name">{item.name}</span>
-                                    </div>
-                                    <span className="item-date">{item.date}</span>
-                                </div>
+                                    <span className="dashboard-toolbar__dropdown-name">
+                                        {item.name}
+                                    </span>
+                                    <span className="dashboard-toolbar__dropdown-date">
+                                        {item.date}
+                                    </span>
+                                </button>
                             ))}
                         </div>
                     )}
                 </div>
             </div>
 
-            <div className="toolbar-right">
-                <div className="search-container">
-                    <span className="search-icon">🔍</span>
-                    <input
-                        className="search-input"
-                        placeholder="검색..."
-                        value={searchKeyword}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                    />
-                </div>
+            <div className="dashboard-toolbar__controls">
+                <input
+                    type="text"
+                    className="dashboard-toolbar__search"
+                    placeholder="검색"
+                    value={searchKeyword}
+                    onChange={(e) => onChangeSearchKeyword(e.target.value)}
+                />
 
                 <select
-                    className="toolbar-select"
+                    className="dashboard-toolbar__select"
                     value={viewMode}
-                    onChange={(e) => onViewModeChange(e.target.value)}
+                    onChange={(e) => onChangeViewMode(e.target.value)}
                 >
-                    <option>보통 아이콘</option>
-                    <option>목록</option>
-                    <option>자세히</option>
+                    <option value="보통 아이콘">보통 아이콘</option>
+                    <option value="목록">목록</option>
+                    <option value="자세히">자세히</option>
                 </select>
 
                 <select
-                    className="toolbar-select"
+                    className="dashboard-toolbar__select"
                     value={sortMode}
-                    onChange={(e) => onSortModeChange(e.target.value)}
+                    onChange={(e) => onChangeSortMode(e.target.value)}
                 >
-                    <option>수정일순</option>
-                    <option>이름순</option>
+                    <option value="수정일순">수정일순</option>
+                    <option value="이름순">이름순</option>
+                    <option value="종류순">종류순</option>
                 </select>
             </div>
         </div>

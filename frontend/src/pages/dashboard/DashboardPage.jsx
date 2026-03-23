@@ -12,9 +12,7 @@ import {
 } from "../../api/projects";
 import { getSharedByMe, getSharedWithMe } from "../../api/shares";
 
-import ThemeToggleButton from "../../components/ThemeToggleButton";
-import ProfileMenu from "../../components/ProfileMenu";
-import DashboardSidebar from "./DashboardSidebar";
+import AppShell from "../../components/layout/AppShell";
 import DashboardToolbar from "./DashboardToolbar";
 import ProjectGrid from "./ProjectGrid";
 import CreateProjectModal from "./CreateProjectModal";
@@ -59,7 +57,6 @@ export default function DashboardPage() {
     const [renameTarget, setRenameTarget] = useState(null);
     const [renameValue, setRenameValue] = useState("");
     const [shareTarget, setShareTarget] = useState(null);
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     async function refreshCounts() {
         try {
@@ -95,7 +92,6 @@ export default function DashboardPage() {
                     });
 
                     const items = Array.isArray(data) ? data : data?.items || [];
-
                     const mapped = items
                         .filter((item) => item.project)
                         .map((item) => ({
@@ -141,7 +137,6 @@ export default function DashboardPage() {
 
     async function handleCreateProject() {
         const trimmedTitle = projectTitle.trim();
-
         if (!trimmedTitle) {
             alert("이름을 입력해주세요.");
             return;
@@ -235,136 +230,81 @@ export default function DashboardPage() {
             sharedByMe: "공유한 파일",
             active: "진행중 프로젝트",
         };
+
         return titles[activeMenu] || "프로젝트";
     }, [activeMenu]);
 
     if (authLoading) {
-        return (
-            <div className="center-message-screen">
-                <div className="center-message-box">인증 확인 중...</div>
-            </div>
-        );
+        return <div className="dashboard-loading">인증 확인 중...</div>;
     }
 
     return (
-        <div className={`dashboard-shell ${isCreateModalOpen ? "dashboard-modal-open" : ""}`}>
-            <header className="dashboard-topbar">
-                <div
-                    className="brand-box"
-                    onClick={() => navigate("/dashboard")}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                            navigate("/dashboard");
-                        }
-                    }}
-                >
-                    <div className="brand-dots dashboard-brand-dots">
-                        <span />
-                        <span />
-                        <span />
-                    </div>
-                    <span className="brand-text">CRAFT</span>
-                </div>
-
-                <div className="dashboard-top-actions">
-                    <button type="button" className="icon-btn">🔔</button>
-                    <button type="button" className="icon-btn">⚙</button>
-                    <ThemeToggleButton />
-
-                    <button
-                        type="button"
-                        className="user-profile-trigger"
-                        onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-                        aria-label="프로필 메뉴 열기"
-                    >
-                        {user?.picture ? (
-                            <img
-                                src={user.picture}
-                                alt="profile"
-                                className="header-avatar"
-                            />
-                        ) : (
-                            <div className="header-avatar-fallback">
-                                {user?.name?.charAt(0) || "U"}
-                            </div>
-                        )}
-                    </button>
-                </div>
-            </header>
-
-            <div className="dashboard-content">
-                <DashboardSidebar
-                    counts={counts}
-                    activeMenu={activeMenu}
-                    onMenuChange={setActiveMenu}
-                    onCreateProject={() => setIsCreateModalOpen(true)}
+        <AppShell
+            user={user}
+            activeMenu={activeMenu}
+            counts={counts}
+            onChangeMenu={setActiveMenu}
+            onCreateClick={() => setIsCreateModalOpen(true)}
+            onLogout={logoutUser}
+            onGoDashboard={() => navigate("/dashboard")}
+        >
+            <section className="dashboard-page">
+                <DashboardToolbar
+                    title={currentSectionTitle}
+                    searchKeyword={searchKeyword}
+                    onChangeSearchKeyword={setSearchKeyword}
+                    viewMode={viewMode}
+                    onChangeViewMode={setViewMode}
+                    sortMode={sortMode}
+                    onChangeSortMode={setSortMode}
                 />
 
-                <main className="dashboard-main">
-                    <DashboardToolbar
-                        currentSectionTitle={currentSectionTitle}
-                        searchKeyword={searchKeyword}
-                        onSearchChange={setSearchKeyword}
-                        viewMode={viewMode}
-                        onViewModeChange={setViewMode}
-                        sortMode={sortMode}
-                        onSortModeChange={setSortMode}
-                    />
-
-                    <div className="project-display-area">
-                        {!isLoadingProjects && projects.length === 0 ? (
-                            <div className="empty-dashboard-state">
-                                <h2 className="welcome-text">
-                                    <strong>{user?.name || "User"}</strong>님, 환영합니다!
-                                </h2>
-                                <p className="sub-text">나만의 가구를 디자인해보세요</p>
-                                <button
-                                    className="main-create-btn"
-                                    onClick={() => setIsCreateModalOpen(true)}
-                                >
-                                    + 첫 프로젝트 만들기
-                                </button>
-                            </div>
-                        ) : (
-                            <ProjectGrid
-                                projects={projects}
-                                isLoading={isLoadingProjects}
-                                viewMode={viewMode}
-                                activeMenu={activeMenu}
-                                openMenuProjectId={openMenuProjectId}
-                                onToggleMenu={setOpenMenuProjectId}
-                                onRenameClick={(p) => {
-                                    setRenameTarget(p);
-                                    setRenameValue(p.title);
-                                    setOpenMenuProjectId(null);
-                                }}
-                                onShareClick={(p) => {
-                                    setShareTarget(p);
-                                    setOpenMenuProjectId(null);
-                                }}
-                                onMoveStatus={handleMoveStatus}
-                                onMoveToTrash={(id) => handleMoveStatus(id, "trash")}
-                                onDuplicate={handleDuplicate}
-                                onPermanentDelete={handlePermanentDelete}
-                                onOpenProject={handleOpenProject}
-                            />
-                        )}
-                    </div>
-                </main>
-            </div>
-
-            <footer className="dashboard-footer">
-                <div className="footer-left-info">
-                    <span className="footer-item">{projects.length}개 항목</span>
+                <div className="dashboard-main">
+                    {!isLoadingProjects && projects.length === 0 ? (
+                        <div className="dashboard-empty">
+                            <h2>{user?.name || "User"}님, 환영합니다!</h2>
+                            <p>나만의 가구를 디자인해보세요</p>
+                            <button
+                                type="button"
+                                className="dashboard-empty__create-btn"
+                                onClick={() => setIsCreateModalOpen(true)}
+                            >
+                                + 첫 프로젝트 만들기
+                            </button>
+                        </div>
+                    ) : (
+                        <ProjectGrid
+                            projects={projects}
+                            isLoading={isLoadingProjects}
+                            viewMode={viewMode}
+                            activeMenu={activeMenu}
+                            openMenuProjectId={openMenuProjectId}
+                            onToggleMenu={setOpenMenuProjectId}
+                            onRenameClick={(project) => {
+                                setRenameTarget(project);
+                                setRenameValue(project.title);
+                                setOpenMenuProjectId(null);
+                            }}
+                            onShareClick={(project) => {
+                                setShareTarget(project);
+                                setOpenMenuProjectId(null);
+                            }}
+                            onMoveStatus={handleMoveStatus}
+                            onMoveToTrash={(id) => handleMoveStatus(id, "trash")}
+                            onDuplicate={handleDuplicate}
+                            onPermanentDelete={handlePermanentDelete}
+                            onOpenProject={handleOpenProject}
+                        />
+                    )}
                 </div>
-            </footer>
+
+                <div className="dashboard-page__footer">{projects.length}개 항목</div>
+            </section>
 
             {isCreateModalOpen && (
                 <CreateProjectModal
-                    value={projectTitle}
-                    onChange={setProjectTitle}
+                    projectTitle={projectTitle}
+                    onChangeTitle={setProjectTitle}
                     onClose={() => {
                         setIsCreateModalOpen(false);
                         setProjectTitle("");
@@ -376,7 +316,7 @@ export default function DashboardPage() {
             {renameTarget && (
                 <RenameProjectModal
                     value={renameValue}
-                    onChange={setRenameValue}
+                    onChangeValue={setRenameValue}
                     onClose={() => {
                         setRenameTarget(null);
                         setRenameValue("");
@@ -392,17 +332,6 @@ export default function DashboardPage() {
                     onShared={refreshCounts}
                 />
             )}
-
-            <ProfileMenu
-                user={user}
-                isOpen={isProfileMenuOpen}
-                onClose={() => setIsProfileMenuOpen(false)}
-                onLogout={logoutUser}
-                onOpenSettings={() => {
-                    setIsProfileMenuOpen(false);
-                    alert("계정 설정은 다음 단계에서 연결할게요.");
-                }}
-            />
-        </div>
+        </AppShell>
     );
 }

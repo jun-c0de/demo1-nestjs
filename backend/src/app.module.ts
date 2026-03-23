@@ -5,6 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { ProjectModule } from './project/project.module';
 import { DesignModule } from './design/design.module';
 import { ShareModule } from './share/share.module';
+import { FloorplanModule } from './floorplan/floorplan.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -15,14 +17,15 @@ import { ShareModule } from './share/share.module';
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        // .env 파일의 MONGO_URI와 이름을 일치시켰습니다.
-        uri: configService.get<string>('MONGO_URI'),
+        uri: configService.get('MONGO_URI'),
       }),
     }),
     AuthModule,
     ProjectModule,
     DesignModule,
     ShareModule,
+    FloorplanModule,
+    RoomModule,
   ],
 })
 export class AppModule { }

@@ -15,6 +15,29 @@ export class Project extends Document {
         default: 'active',
     })
     status: string;
+
+    @Prop({
+        type: String,
+        enum: ['residential', 'office', 'commercial'],
+        default: 'residential',
+    })
+    projectType: string;
+
+    @Prop({ type: String, trim: true, default: '' })
+    siteName: string;
+
+    @Prop({ type: String, trim: true, default: '' })
+    address: string;
+
+    @Prop({
+        type: String,
+        enum: ['mm', 'cm', 'm'],
+        default: 'mm',
+    })
+    defaultUnit: string;
+
+    @Prop({ type: String, default: '' })
+    thumbnailUrl: string;
 }
 
 export const ProjectSchema = SchemaFactory.createForClass(Project);

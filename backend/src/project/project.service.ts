@@ -187,7 +187,9 @@ export class ProjectService {
     const updateData: any = {};
 
     if (payload.projectType !== undefined) {
-      if (!['residential', 'office', 'commercial'].includes(payload.projectType)) {
+      if (
+        !['residential', 'office', 'commercial'].includes(payload.projectType)
+      ) {
         throw new BadRequestException('유효하지 않은 프로젝트 유형입니다.');
       }
       updateData.projectType = payload.projectType;

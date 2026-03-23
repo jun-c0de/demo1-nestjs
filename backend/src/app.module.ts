@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+
 import { AuthModule } from './auth/auth.module';
 import { ProjectModule } from './project/project.module';
 import { DesignModule } from './design/design.module';
@@ -28,4 +29,4 @@ import { RoomModule } from './room/room.module';
     RoomModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

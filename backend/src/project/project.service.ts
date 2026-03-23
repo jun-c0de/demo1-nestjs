@@ -33,7 +33,7 @@ export class ProjectService {
       defaultUnit: project.defaultUnit ?? 'mm',
       thumbnailUrl: project.thumbnailUrl ?? '',
       floorplanCount,
-      fileCount: floorplanCount, // 기존 프론트 호환용
+      fileCount: floorplanCount,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     };

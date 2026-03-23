@@ -1,6 +1,23 @@
-import { IsIn } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
-export class UpdateProjectStatusDto {
-    @IsIn(['active', 'completed', 'trash'])
-    status: string;
+export class UpdateProjectMetaDto {
+    @IsOptional()
+    @IsIn(['residential', 'office', 'commercial'])
+    projectType?: string;
+
+    @IsOptional()
+    @IsString()
+    siteName?: string;
+
+    @IsOptional()
+    @IsString()
+    address?: string;
+
+    @IsOptional()
+    @IsIn(['mm', 'cm', 'm'])
+    defaultUnit?: string;
+
+    @IsOptional()
+    @IsString()
+    thumbnailUrl?: string;
 }

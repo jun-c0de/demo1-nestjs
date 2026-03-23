@@ -1,63 +1,33 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import {
+    IsIn,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    IsNumber,
+} from 'class-validator';
 
-class Point {
-    @Prop({ required: true })
-    x: number;
-
-    @Prop({ required: true })
-    y: number;
-}
-
-@Schema({ timestamps: true })
-export class Floorplan extends Document {
-    @Prop({ type: Types.ObjectId, ref: 'Project', required: true })
-    projectId: Types.ObjectId;
-
-    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-    owner: Types.ObjectId;
-
-    @Prop({ required: true, trim: true })
+export class CreateFloorplanDto {
+    @IsString()
+    @IsNotEmpty()
     name: string;
 
-    @Prop({ required: true })
+    @IsString()
+    @IsNotEmpty()
     originalFileUrl: string;
 
-    @Prop({
-        type: String,
-        enum: ['pdf', 'png', 'jpg', 'jpeg'],
-        required: true,
-    })
+    @IsString()
+    @IsIn(['pdf', 'png', 'jpg', 'jpeg'])
     fileType: string;
 
-    @Prop({ type: Number, default: null })
-    pageIndex: number | null;
+    @IsOptional()
+    @IsNumber()
+    pageIndex?: number;
 
-    @Prop({ type: Number, default: null })
-    scaleRatio: number | null;
+    @IsOptional()
+    @IsNumber()
+    width?: number;
 
-    @Prop({
-        type: String,
-        enum: ['mm', 'cm', 'm'],
-        default: 'mm',
-    })
-    scaleUnit: string;
-
-    @Prop({ type: [Point], default: [] })
-    calibrationPoints: Point[];
-
-    @Prop({ type: Number, default: 0 })
-    width: number;
-
-    @Prop({ type: Number, default: 0 })
-    height: number;
-
-    @Prop({
-        type: String,
-        enum: ['uploaded', 'calibrated', 'reviewed'],
-        default: 'uploaded',
-    })
-    status: string;
+    @IsOptional()
+    @IsNumber()
+    height?: number;
 }
-
-export const FloorplanSchema = SchemaFactory.createForClass(Floorplan);

@@ -1,10 +1,6 @@
-import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
-export class CreateProjectDto {
-    @IsString()
-    @IsNotEmpty()
-    title: string;
-
+export class UpdateProjectMetaDto {
     @IsOptional()
     @IsIn(['residential', 'office', 'commercial'])
     projectType?: string;

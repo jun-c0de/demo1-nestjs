@@ -12,6 +12,10 @@ import {
 import { ProjectService } from './project.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CreateProjectDto } from './dto/create-project.dto';
+import { RenameProjectDto } from './dto/rename-project.dto';
+import { UpdateProjectStatusDto } from './dto/update-project-status.dto';
+import { UpdateProjectMetaDto } from './dto/update-project-meta.dto';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
@@ -19,7 +23,10 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
 
   @Post()
-  create(@CurrentUser('userId') userId: string, @Body() body: any) {
+  create(
+    @CurrentUser('userId') userId: string,
+    @Body() body: CreateProjectDto,
+  ) {
     return this.projectService.createProject(userId, body);
   }
 
@@ -42,18 +49,27 @@ export class ProjectController {
   rename(
     @CurrentUser('userId') userId: string,
     @Param('id') id: string,
-    @Body('title') title: string,
+    @Body() body: RenameProjectDto,
   ) {
-    return this.projectService.renameProject(userId, id, title);
+    return this.projectService.renameProject(userId, id, body.title);
+  }
+
+  @Patch(':id/meta')
+  updateMeta(
+    @CurrentUser('userId') userId: string,
+    @Param('id') id: string,
+    @Body() body: UpdateProjectMetaDto,
+  ) {
+    return this.projectService.updateProjectMeta(userId, id, body);
   }
 
   @Patch(':id/status')
   updateStatus(
     @CurrentUser('userId') userId: string,
     @Param('id') id: string,
-    @Body('status') status: string,
+    @Body() body: UpdateProjectStatusDto,
   ) {
-    return this.projectService.updateProjectStatus(userId, id, status);
+    return this.projectService.updateProjectStatus(userId, id, body.status);
   }
 
   @Post(':id/duplicate')

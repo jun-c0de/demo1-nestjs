@@ -28,4 +28,4 @@ import { RoomModule } from './room/room.module';
     RoomModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

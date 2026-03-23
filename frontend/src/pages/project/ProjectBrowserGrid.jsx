@@ -1,28 +1,41 @@
-import ProjectItemCard from "./ProjectBrowserCard";
+import ProjectBrowserCard from "./ProjectBrowserCard";
 
-export default function ProjectItemGrid({ projectId, items = [] }) {
-    if (!Array.isArray(items) || items.length === 0) {
+export default function ProjectBrowserGrid({
+    folders = [],
+    designs = [],
+    viewMode,
+    onOpenFolder,
+    onOpenDesign,
+}) {
+    const items = [...folders, ...designs];
+
+    if (items.length === 0) {
         return (
-            <div className="dashboard-empty-state">
-                <div className="empty-file-icon">📄</div>
-                <p>디자인이 없습니다</p>
+            <div className="project-browser-empty-state">
+                <p>이 위치에는 아직 항목이 없습니다.</p>
             </div>
         );
     }
 
     return (
-        <div className="project-grid">
-            {items.map((item) => {
-                const itemId = item.id || item._id;
+        <div className={`project-browser-grid view-${viewMode.replace(/\s+/g, "-").toLowerCase()}`}>
+            {folders.map((folder) => (
+                <ProjectBrowserCard
+                    key={folder.id}
+                    item={folder}
+                    viewMode={viewMode}
+                    onOpen={onOpenFolder}
+                />
+            ))}
 
-                return (
-                    <ProjectItemCard
-                        key={itemId}
-                        projectId={projectId}
-                        item={item}
-                    />
-                );
-            })}
+            {designs.map((design) => (
+                <ProjectBrowserCard
+                    key={design.id || design._id}
+                    item={{ ...design, type: "design" }}
+                    viewMode={viewMode}
+                    onOpen={onOpenDesign}
+                />
+            ))}
         </div>
     );
 }

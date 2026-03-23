@@ -1,52 +1,96 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { clearToken, getMe } from "../../api/auth";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { getProject } from "../../api/project";
 import { getDesign, updateDesign } from "../../api/design";
-import ThemeToggleButton from "../../components/ThemeToggleButton";
+import { useAuth } from "../../contexts/AuthContext";
 import { useProjectEditorStore } from "../stores/projectEditorStore";
 import ProjectEditorSidebar from "./ProjectEditorSidebar";
 import ProjectEditorCanvas from "./ProjectEditorCanvas";
 import ProjectEditorInspector from "./ProjectEditorInspector";
 
+function folderStorageKey(projectId) {
+    return `craft:folders:${projectId}`;
+}
+
+function designLocationStorageKey(projectId) {
+    return `craft:design-locations:${projectId}`;
+}
+
+function readJson(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+function buildFolderPath(folders, folderId) {
+    if (!folderId) return [];
+
+    const byId = new Map(folders.map((folder) => [folder.id, folder]));
+    const path = [];
+    let current = byId.get(folderId);
+
+    while (current) {
+        path.unshift(current);
+        current = current.parentId ? byId.get(current.parentId) : null;
+    }
+
+    return path;
+}
+
 export default function ProjectEditorPage() {
     const navigate = useNavigate();
     const { projectId, designId } = useParams();
-
-    const [user, setUser] = useState(null);
+    const { user, authLoading, logoutUser } = useAuth();
     const [isLoading, setIsLoading] = useState(true);
 
     const project = useProjectEditorStore((state) => state.project);
     const design = useProjectEditorStore((state) => state.design);
     const room = useProjectEditorStore((state) => state.room);
     const editorData = useProjectEditorStore((state) => state.editorData);
-
     const setProject = useProjectEditorStore((state) => state.setProject);
     const setDesign = useProjectEditorStore((state) => state.setDesign);
 
+    const [folders, setFolders] = useState([]);
+    const [designLocations, setDesignLocations] = useState({});
+
     useEffect(() => {
+        if (authLoading || !user) return;
+
         async function initializePage() {
             try {
-                const [meData, projectData, designData] = await Promise.all([
-                    getMe(),
+                const [projectData, designData] = await Promise.all([
                     getProject(projectId),
                     getDesign(projectId, designId),
                 ]);
 
-                setUser(meData.user);
-                setProject(projectData.project);
-                setDesign(designData.design);
+                setProject(projectData?.project || projectData);
+                setDesign(designData?.design || designData);
+                setFolders(readJson(folderStorageKey(projectId), []));
+                setDesignLocations(readJson(designLocationStorageKey(projectId), {}));
             } catch (error) {
                 console.error(error);
-                clearToken();
-                navigate("/auth?mode=login", { replace: true });
+                navigate("/dashboard", { replace: true });
             } finally {
                 setIsLoading(false);
             }
         }
 
         initializePage();
-    }, [navigate, projectId, designId, setProject, setDesign]);
+    }, [authLoading, user, navigate, projectId, designId, setProject, setDesign]);
+
+    const breadcrumbItems = useMemo(() => {
+        const folderPath = buildFolderPath(folders, designLocations[designId]);
+
+        return [
+            "내 프로젝트",
+            project?.title,
+            ...folderPath.map((folder) => folder.name),
+            design?.name,
+        ].filter(Boolean);
+    }, [folders, designLocations, designId, project, design]);
 
     async function handleSave() {
         try {
@@ -55,7 +99,6 @@ export default function ProjectEditorPage() {
                 room,
                 editorData,
             });
-
             alert("저장되었습니다.");
         } catch (error) {
             alert(error.message);
@@ -66,113 +109,35 @@ export default function ProjectEditorPage() {
         navigate(`/projects/${projectId}`);
     }
 
-    function handleLogout() {
-        clearToken();
-        navigate("/", { replace: true });
-    }
-
-    if (isLoading || !user || !project || !design) {
-        return (
-            <div className="center-message-screen">
-                <div className="center-message-box">디자인 불러오는 중...</div>
-            </div>
-        );
+    if (authLoading || isLoading || !project || !design) {
+        return <div className="page-state">디자인 불러오는 중...</div>;
     }
 
     return (
-        <div className="editor-page">
-            <header className="editor-header">
-                <div className="editor-header-left">
-                    <div className="brand-box" onClick={() => navigate("/dashboard")}>
-                        <div className="brand-dots dashboard-brand-dots">
-                            <span />
-                            <span />
-                            <span />
-                        </div>
-                        <span className="brand-text">CRAFT</span>
-                    </div>
-
-                    <div className="editor-header-actions">
-                        <button type="button" className="editor-header-btn">
-                            파일
-                        </button>
-                        <button type="button" className="editor-header-btn" onClick={handleSave}>
-                            저장
-                        </button>
-                        <button type="button" className="editor-header-btn" onClick={handleExit}>
-                            저장하고 나가기
-                        </button>
+        <div className="project-editor-page">
+            <header className="project-editor-topbar">
+                <div className="project-editor-topbar__left">
+                    <button type="button" onClick={() => navigate("/dashboard")}>CRAFT</button>
+                    <div className="project-editor-breadcrumbs">
+                        {breadcrumbItems.join(" > ")}
                     </div>
                 </div>
 
-                <div className="editor-header-center">
-                    <span className="editor-header-path">◦◦</span>
-                    <span className="editor-header-divider">›</span>
-                    <span className="editor-header-path">{project.title}</span>
-                    <span className="editor-header-divider">›</span>
-                    <span className="editor-header-current">{design.name}</span>
-                </div>
-
-                <div className="editor-header-right">
-                    <button type="button" className="editor-header-ghost-btn">
-                        조작법
-                    </button>
-
-                    <button type="button" className="editor-header-primary-btn">
-                        컨버팅
-                    </button>
-
-                    <button type="button" className="user-chip" onClick={handleLogout}>
-                        {user.avatar ? (
-                            <img src={user.avatar} alt="user avatar" className="user-avatar" />
-                        ) : (
-                            <span className="user-avatar user-avatar-fallback">
-                                {user.name?.slice(0, 1).toUpperCase()}
-                            </span>
-                        )}
-                    </button>
-
-                    <button type="button" className="icon-btn">
-                        ⚙
-                    </button>
-                    <ThemeToggleButton />
+                <div className="project-editor-topbar__right">
+                    <button type="button" onClick={handleSave}>저장</button>
+                    <button type="button" onClick={handleExit}>저장하고 나가기</button>
+                    <button type="button" onClick={logoutUser}>로그아웃</button>
                 </div>
             </header>
 
-            <div className="editor-tabbar">
-                <button type="button" className="editor-tabbar-menu-btn">
-                    ☰
-                </button>
-
-                <div className="editor-tabs">
-                    <button type="button" className="editor-tab">
-                        ◦◦ /{project.title}
-                    </button>
-
-                    <button type="button" className="editor-tab active">
-                        ◦◦ /{design.name} ✕
-                    </button>
-
-                    <button type="button" className="editor-tab add" onClick={handleExit}>
-                        ＋ 디자인 생성
-                    </button>
-                </div>
+            <div className="project-editor-explorer-bar">
+                {breadcrumbItems.join(" > ")}
             </div>
 
-            <div className="editor-body">
-                <aside className="editor-left-column">
-                    <ProjectEditorSidebar />
-                </aside>
-
-                <section className="editor-center-column">
-                    <div className="editor-viewer-shell">
-                        <ProjectEditorCanvas />
-                    </div>
-                </section>
-
-                <aside className="editor-right-column">
-                    <ProjectEditorInspector />
-                </aside>
+            <div className="project-editor-layout">
+                <ProjectEditorSidebar />
+                <ProjectEditorCanvas />
+                <ProjectEditorInspector />
             </div>
         </div>
     );

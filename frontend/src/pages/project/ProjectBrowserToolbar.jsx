@@ -1,5 +1,5 @@
 export default function ProjectBrowserToolbar({
-    title,
+    breadcrumbs,
     searchKeyword,
     onChangeSearchKeyword,
     viewMode,
@@ -8,48 +8,106 @@ export default function ProjectBrowserToolbar({
     onChangeSortMode,
     onCreateDesign,
     onCreateFolder,
+    onNavigateBreadcrumb,
+    onGoBack,
+    onGoForward,
+    onGoUp,
+    canGoBack,
+    canGoForward,
+    canGoUp,
 }) {
     return (
         <div className="project-browser-toolbar">
-            <div className="project-browser-toolbar__left">
-                <button type="button" className="project-browser-toolbar__primary-btn" onClick={onCreateDesign}>
-                    + 새 디자인
-                </button>
+            <div className="project-browser-toolbar-left">
+                <div className="project-browser-nav-controls">
+                    <button
+                        type="button"
+                        className="project-browser-icon-btn"
+                        onClick={onGoBack}
+                        disabled={!canGoBack}
+                        aria-label="뒤로"
+                        title="뒤로"
+                    >
+                        ‹
+                    </button>
+                    <button
+                        type="button"
+                        className="project-browser-icon-btn"
+                        onClick={onGoForward}
+                        disabled={!canGoForward}
+                        aria-label="앞으로"
+                        title="앞으로"
+                    >
+                        ›
+                    </button>
+                    <button
+                        type="button"
+                        className="project-browser-icon-btn"
+                        onClick={onGoUp}
+                        disabled={!canGoUp}
+                        aria-label="상위 폴더"
+                        title="상위 폴더"
+                    >
+                        ↑
+                    </button>
+                </div>
 
-                <button type="button" className="project-browser-toolbar__secondary-btn" onClick={onCreateFolder}>
-                    + 새 폴더
-                </button>
+                <div className="project-browser-actions">
+                    <button
+                        type="button"
+                        className="project-browser-btn primary"
+                        onClick={onCreateDesign}
+                    >
+                        + 새 디자인
+                    </button>
+                    <button
+                        type="button"
+                        className="project-browser-btn"
+                        onClick={onCreateFolder}
+                    >
+                        + 새 폴더
+                    </button>
+                </div>
 
-                <div className="project-browser-toolbar__breadcrumb">
-                    <span>내 프로젝트</span>
-                    <span>›</span>
-                    <span className="is-current">{title}</span>
+                <div className="project-browser-breadcrumbs">
+                    {breadcrumbs.map((item, index) => (
+                        <button
+                            key={item.key}
+                            type="button"
+                            className={`project-browser-breadcrumb ${index === breadcrumbs.length - 1 ? "current" : ""
+                                }`}
+                            onClick={() => onNavigateBreadcrumb(item.key)}
+                        >
+                            {index > 0 && <span className="sep">&gt;</span>}
+                            <span>{item.label}</span>
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            <div className="project-browser-toolbar__controls">
+            <div className="project-browser-toolbar-right">
                 <input
                     type="text"
-                    className="project-browser-toolbar__search"
-                    placeholder="검색"
+                    className="project-browser-search"
                     value={searchKeyword}
-                    onChange={(e) => onChangeSearchKeyword(e.target.value)}
+                    onChange={(event) => onChangeSearchKeyword(event.target.value)}
+                    placeholder="프로젝트 내부 검색"
                 />
 
                 <select
-                    className="project-browser-toolbar__select"
+                    className="project-browser-select"
                     value={viewMode}
-                    onChange={(e) => onChangeViewMode(e.target.value)}
+                    onChange={(event) => onChangeViewMode(event.target.value)}
                 >
                     <option value="보통 아이콘">보통 아이콘</option>
+                    <option value="큰 아이콘">큰 아이콘</option>
                     <option value="목록">목록</option>
-                    <option value="자세히">자세히</option>
                 </select>
 
                 <select
-                    className="project-browser-toolbar__select"
+                    className="project-browser-select"
                     value={sortMode}
-                    onChange={(e) => onChangeSortMode(e.target.value)}
+                    onChange={(event) => onChangeSortMode(event.target.value)}
                 >
                     <option value="수정일순">수정일순</option>
                     <option value="이름순">이름순</option>

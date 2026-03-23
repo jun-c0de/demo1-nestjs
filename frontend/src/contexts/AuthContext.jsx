@@ -1,10 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import {
-    getMe,
-    logout,
-    clearAccessToken,
-    setAccessToken,
-} from "../api/auth";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { clearToken, getMe, getToken, logout } from "../api/auth";
 
 const AuthContext = createContext(null);
 
@@ -12,58 +7,54 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
 
-    async function bootstrapAuth() {
-        const token = localStorage.getItem("accessToken");
+    const checkAuth = useCallback(async () => {
+        const token = getToken();
 
         if (!token) {
+            setUser(null);
             setAuthLoading(false);
-            return;
+            return null;
         }
 
         try {
             const me = await getMe();
             setUser(me);
+            return me;
         } catch (error) {
-            clearAccessToken();
+            clearToken();
             setUser(null);
+            return null;
         } finally {
             setAuthLoading(false);
         }
-    }
-
-    async function loginUser(nextUser, accessToken) {
-        if (accessToken) {
-            setAccessToken(accessToken);
-        }
-        setUser(nextUser);
-    }
-
-    async function logoutUser() {
-        try {
-            await logout();
-        } catch (_) {
-            // ignore
-        } finally {
-            clearAccessToken();
-            setUser(null);
-            window.location.href = "/";
-        }
-    }
+    }, []);
 
     useEffect(() => {
-        bootstrapAuth();
+        checkAuth();
+    }, [checkAuth]);
+
+    const logoutUser = useCallback(async () => {
+        try {
+            await logout();
+        } catch {
+            clearToken();
+        } finally {
+            setUser(null);
+            window.location.replace("/");
+        }
     }, []);
 
     const value = useMemo(
         () => ({
             user,
             setUser,
-            authLoading,
-            loginUser,
+            checkAuth,
             logoutUser,
-            isAuthenticated: !!user,
+            authLoading,
+            loading: authLoading,
+            isAuthenticated: Boolean(user),
         }),
-        [user, authLoading]
+        [user, checkAuth, logoutUser, authLoading]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -73,7 +64,7 @@ export function useAuth() {
     const context = useContext(AuthContext);
 
     if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
+        throw new Error("useAuth must be used within AuthProvider");
     }
 
     return context;

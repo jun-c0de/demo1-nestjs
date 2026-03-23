@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import {
     createProject,
@@ -11,7 +11,6 @@ import {
     updateProjectStatus,
 } from "../../api/projects";
 import { getSharedByMe, getSharedWithMe } from "../../api/shares";
-
 import AppShell from "../../components/layout/AppShell";
 import DashboardToolbar from "./DashboardToolbar";
 import ProjectGrid from "./ProjectGrid";
@@ -33,6 +32,7 @@ function mapSidebarToStatus(sidebarMenu) {
 
 export default function DashboardPage() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user, logoutUser, authLoading } = useAuth();
 
     const [projects, setProjects] = useState([]);
@@ -44,25 +44,32 @@ export default function DashboardPage() {
         sharedByMe: 0,
     });
 
-    const [activeMenu, setActiveMenu] = useState("active");
+    const [activeMenu, setActiveMenu] = useState(searchParams.get("menu") || "active");
     const [viewMode, setViewMode] = useState("보통 아이콘");
     const [sortMode, setSortMode] = useState("수정일순");
     const [searchKeyword, setSearchKeyword] = useState("");
     const [isLoadingProjects, setIsLoadingProjects] = useState(true);
-
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [projectTitle, setProjectTitle] = useState("");
-
     const [openMenuProjectId, setOpenMenuProjectId] = useState(null);
     const [renameTarget, setRenameTarget] = useState(null);
     const [renameValue, setRenameValue] = useState("");
     const [shareTarget, setShareTarget] = useState(null);
 
+    useEffect(() => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            next.set("menu", activeMenu);
+            return next;
+        });
+    }, [activeMenu, setSearchParams]);
+
     async function refreshCounts() {
         try {
             const data = await getProjectCounts();
             setCounts(
-                data?.counts || data || {
+                data?.counts ||
+                data || {
                     active: 0,
                     completed: 0,
                     trash: 0,
@@ -83,9 +90,7 @@ export default function DashboardPage() {
                 setIsLoadingProjects(true);
 
                 if (activeMenu === "sharedWithMe" || activeMenu === "sharedByMe") {
-                    const fetchFn =
-                        activeMenu === "sharedWithMe" ? getSharedWithMe : getSharedByMe;
-
+                    const fetchFn = activeMenu === "sharedWithMe" ? getSharedWithMe : getSharedByMe;
                     const data = await fetchFn({
                         search: searchKeyword,
                         sort: mapSortLabelToQuery(sortMode),
@@ -125,7 +130,7 @@ export default function DashboardPage() {
             }
         }
 
-        const timeout = setTimeout(fetchItems, 300);
+        const timeout = setTimeout(fetchItems, 250);
         return () => clearTimeout(timeout);
     }, [user, authLoading, activeMenu, searchKeyword, sortMode]);
 
@@ -137,6 +142,7 @@ export default function DashboardPage() {
 
     async function handleCreateProject() {
         const trimmedTitle = projectTitle.trim();
+
         if (!trimmedTitle) {
             alert("이름을 입력해주세요.");
             return;
@@ -144,14 +150,20 @@ export default function DashboardPage() {
 
         try {
             const data = await createProject({ title: trimmedTitle });
+            const createdProject = data?.project || data;
+            const createdProjectId = createdProject?.id || createdProject?._id;
 
             if (activeMenu === "active") {
-                setProjects((prev) => [data.project || data, ...prev]);
+                setProjects((prev) => [createdProject, ...prev]);
             }
 
             await refreshCounts();
             setIsCreateModalOpen(false);
             setProjectTitle("");
+
+            if (createdProjectId) {
+                navigate(`/projects/${createdProjectId}`);
+            }
         } catch (error) {
             alert(error.message);
         }
@@ -160,7 +172,7 @@ export default function DashboardPage() {
     async function handleMoveStatus(projectId, status) {
         try {
             await updateProjectStatus(projectId, { status });
-            setProjects((prev) => prev.filter((p) => (p.id || p._id) !== projectId));
+            setProjects((prev) => prev.filter((project) => (project.id || project._id) !== projectId));
             setOpenMenuProjectId(null);
             await refreshCounts();
         } catch (error) {
@@ -173,7 +185,7 @@ export default function DashboardPage() {
 
         try {
             await deleteProjectForever(projectId);
-            setProjects((prev) => prev.filter((p) => (p.id || p._id) !== projectId));
+            setProjects((prev) => prev.filter((project) => (project.id || project._id) !== projectId));
             setOpenMenuProjectId(null);
             await refreshCounts();
         } catch (error) {
@@ -184,9 +196,10 @@ export default function DashboardPage() {
     async function handleDuplicate(projectId) {
         try {
             const data = await duplicateProject(projectId);
+            const duplicatedProject = data?.project || data;
 
             if (activeMenu === "active") {
-                setProjects((prev) => [data.project || data, ...prev]);
+                setProjects((prev) => [duplicatedProject, ...prev]);
             }
 
             await refreshCounts();
@@ -198,15 +211,17 @@ export default function DashboardPage() {
 
     async function handleRenameSubmit() {
         const trimmedTitle = renameValue.trim();
+
         if (!trimmedTitle || !renameTarget) return;
 
         try {
             const targetId = renameTarget.id || renameTarget._id;
             const data = await renameProject(targetId, { title: trimmedTitle });
+            const updatedProject = data?.project || data;
 
             setProjects((prev) =>
-                prev.map((p) =>
-                    (p.id || p._id) === targetId ? data.project || data : p
+                prev.map((project) =>
+                    (project.id || project._id) === targetId ? updatedProject : project
                 )
             );
 
@@ -224,18 +239,26 @@ export default function DashboardPage() {
 
     const currentSectionTitle = useMemo(() => {
         const titles = {
+            active: "진행중 프로젝트",
             completed: "완료된 프로젝트",
             trash: "휴지통",
             sharedWithMe: "공유받은 파일",
             sharedByMe: "공유한 파일",
-            active: "진행중 프로젝트",
         };
 
         return titles[activeMenu] || "프로젝트";
     }, [activeMenu]);
 
+    const dashboardBreadcrumbs = useMemo(
+        () => [
+            { key: "dashboard-root", label: "내 프로젝트" },
+            { key: activeMenu, label: currentSectionTitle },
+        ],
+        [activeMenu, currentSectionTitle]
+    );
+
     if (authLoading) {
-        return <div className="dashboard-loading">인증 확인 중...</div>;
+        return <div className="page-state">인증 확인 중...</div>;
     }
 
     return (
@@ -248,9 +271,9 @@ export default function DashboardPage() {
             onLogout={logoutUser}
             onGoDashboard={() => navigate("/dashboard")}
         >
-            <section className="dashboard-page">
+            <div className="project-browser-page">
                 <DashboardToolbar
-                    title={currentSectionTitle}
+                    breadcrumbs={dashboardBreadcrumbs}
                     searchKeyword={searchKeyword}
                     onChangeSearchKeyword={setSearchKeyword}
                     viewMode={viewMode}
@@ -259,19 +282,18 @@ export default function DashboardPage() {
                     onChangeSortMode={setSortMode}
                 />
 
-                <div className="dashboard-main">
+                <div className="project-browser-content">
                     {!isLoadingProjects && projects.length === 0 ? (
-                        <div className="dashboard-empty">
+                        <section className="dashboard-empty-state">
                             <h2>{user?.name || "User"}님, 환영합니다!</h2>
                             <p>나만의 가구를 디자인해보세요</p>
                             <button
-                                type="button"
-                                className="dashboard-empty__create-btn"
+                                className="button button-primary"
                                 onClick={() => setIsCreateModalOpen(true)}
                             >
                                 + 첫 프로젝트 만들기
                             </button>
-                        </div>
+                        </section>
                     ) : (
                         <ProjectGrid
                             projects={projects}
@@ -290,21 +312,19 @@ export default function DashboardPage() {
                                 setOpenMenuProjectId(null);
                             }}
                             onMoveStatus={handleMoveStatus}
-                            onMoveToTrash={(id) => handleMoveStatus(id, "trash")}
+                            onMoveToTrash={(projectId) => handleMoveStatus(projectId, "trash")}
                             onDuplicate={handleDuplicate}
                             onPermanentDelete={handlePermanentDelete}
                             onOpenProject={handleOpenProject}
                         />
                     )}
                 </div>
-
-                <div className="dashboard-page__footer">{projects.length}개 항목</div>
-            </section>
+            </div>
 
             {isCreateModalOpen && (
                 <CreateProjectModal
-                    projectTitle={projectTitle}
-                    onChangeTitle={setProjectTitle}
+                    value={projectTitle}
+                    onChange={setProjectTitle}
                     onClose={() => {
                         setIsCreateModalOpen(false);
                         setProjectTitle("");
@@ -316,7 +336,7 @@ export default function DashboardPage() {
             {renameTarget && (
                 <RenameProjectModal
                     value={renameValue}
-                    onChangeValue={setRenameValue}
+                    onChange={setRenameValue}
                     onClose={() => {
                         setRenameTarget(null);
                         setRenameValue("");

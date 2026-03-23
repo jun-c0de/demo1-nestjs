@@ -1,45 +1,46 @@
-import { useNavigate } from "react-router-dom";
+import { Folder, FileText } from "lucide-react";
 
 function formatDate(dateString) {
     if (!dateString) return "-";
 
     const date = new Date(dateString);
+
     if (Number.isNaN(date.getTime())) return "-";
 
     return date.toLocaleString("ko-KR", {
         year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
         minute: "2-digit",
     });
 }
 
-export default function ProjectItemCard({ projectId, item }) {
-    const navigate = useNavigate();
-
+export default function ProjectBrowserCard({ item, viewMode, onOpen }) {
     if (!item) return null;
 
-    const itemId = item.id || item._id;
-    const width = item.room?.width ?? 3600;
-    const depth = item.room?.depth ?? 600;
-    const height = item.room?.height ?? 2360;
-
-    function handleOpenDesign() {
-        if (!itemId) return;
-        navigate(`/projects/${projectId}/designs/${itemId}`);
-    }
+    const isFolder = item.type === "folder";
+    const title = item.name || item.title || "이름 없음";
+    const updatedAt = item.updatedAt || item.createdAt;
+    const sizeText = isFolder
+        ? `${item.childrenCount ?? 0}개 항목`
+        : `${item.room?.width ?? 3600} × ${item.room?.depth ?? 600} × ${item.room?.height ?? 2360}`;
 
     return (
-        <div className="design-item-card" onClick={handleOpenDesign}>
-            <div className="design-item-icon">📄</div>
-            <div className="design-item-title">{item.name || "이름 없는 디자인"}</div>
-            <div className="design-item-meta">
-                {width} × {depth} × {height}
+        <button
+            type="button"
+            className={`project-browser-card view-${viewMode.replace(/\s+/g, "-").toLowerCase()}`}
+            onClick={() => onOpen(item)}
+        >
+            <div className="project-browser-card__icon">
+                {isFolder ? <Folder size={20} /> : <FileText size={20} />}
             </div>
-            <div className="design-item-date">
-                {formatDate(item.updatedAt || item.createdAt)}
+
+            <div className="project-browser-card__content">
+                <strong>{title}</strong>
+                <span>{sizeText}</span>
+                <span>{formatDate(updatedAt)}</span>
             </div>
-        </div>
+        </button>
     );
 }

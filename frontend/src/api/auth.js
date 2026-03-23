@@ -1,34 +1,45 @@
-import http from "./http";
+import api from "./index";
 
-export function setAccessToken(token) {
-    localStorage.setItem("accessToken", token);
-}
+const ACCESS_TOKEN_KEY = "accessToken";
 
-export function clearAccessToken() {
-    localStorage.removeItem("accessToken");
-}
+export const getToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
+export const setToken = (token) => {
+    if (!token) return;
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+};
+export const clearToken = () => localStorage.removeItem(ACCESS_TOKEN_KEY);
+
+// alias exports
+export const getAccessToken = getToken;
+export const setAccessToken = setToken;
+export const clearAccessToken = clearToken;
 
 export async function signup(payload) {
-    const data = await http.post("/auth/signup", payload);
-    if (data?.accessToken) setAccessToken(data.accessToken);
+    const data = await api.post("/auth/signup", payload);
+
+    if (data?.accessToken) {
+        setToken(data.accessToken);
+    }
+
     return data;
 }
 
 export async function login(payload) {
-    const data = await http.post("/auth/login", payload);
-    if (data?.accessToken) setAccessToken(data.accessToken);
+    const data = await api.post("/auth/login", payload);
+
+    if (data?.accessToken) {
+        setToken(data.accessToken);
+    }
+
     return data;
 }
 
+export const getMe = () => api.get("/auth/me");
+
 export async function logout() {
-    await http.post("/auth/logout");
-    clearAccessToken();
-}
-
-export async function getMe() {
-    return http.get("/auth/me");
-}
-
-export function getGoogleLoginUrl() {
-    return `${import.meta.env.VITE_API_BASE_URL}/api/auth/google`;
+    try {
+        await api.post("/auth/logout");
+    } finally {
+        clearToken();
+    }
 }

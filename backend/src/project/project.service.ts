@@ -1,14 +1,14 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
-  Inject,
+  BadRequestException
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 
 import { Project } from './schemas/project.schema';
 import { Design } from '../design/schemas/design.schema';
+import { Share } from '../share/schemas/share.schema';
 import { Floorplan } from '../floorplan/schemas/floorplan.schema';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class ProjectService {
     @InjectModel(Design.name) private readonly designModel: Model<Design>,
     @InjectModel(Floorplan.name)
     private readonly floorplanModel: Model<Floorplan>,
-    @Inject('Share') private readonly shareModel: Model<any>,
+    @InjectModel(Share.name) private readonly shareModel: Model<Share>,
   ) { }
 
   private toProjectDto(project: any, floorplanCount = 0) {

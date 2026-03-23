@@ -3,11 +3,11 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    background: var(--white);
+    background: var(--surface);
 }
 
 .dashboard-toolbar {
-    min-height: 56px;
+    min-height: 64px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -15,7 +15,7 @@
     gap: 16px;
     padding: 10px 18px;
     border-bottom: 1px solid var(--line);
-    background: var(--white);
+    background: var(--surface);
     position: relative;
     z-index: 5;
 }
@@ -31,8 +31,8 @@
     width: 32px;
     height: 32px;
     border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--white);
+    border-radius: 10px;
+    background: var(--surface);
     color: var(--text);
     cursor: pointer;
 }
@@ -42,11 +42,11 @@
 }
 
 .dashboard-toolbar__breadcrumb {
-    height: 36px;
+    height: 40px;
     border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--white);
-    padding: 0 12px;
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 0 14px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -56,7 +56,7 @@
 
 .dashboard-toolbar__title {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     white-space: nowrap;
 }
 
@@ -74,10 +74,10 @@
     top: calc(100% + 8px);
     left: 0;
     width: 240px;
-    background: var(--white);
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: 0 16px 32px rgba(17, 19, 24, 0.08);
+    border-radius: 14px;
+    box-shadow: 0 18px 40px var(--overlay);
     padding: 8px;
 }
 
@@ -119,9 +119,9 @@
 
 .dashboard-toolbar__search {
     width: 240px;
-    height: 36px;
+    height: 40px;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--surface);
     padding: 0 12px;
     color: var(--text);
@@ -129,10 +129,10 @@
 }
 
 .dashboard-toolbar__select {
-    height: 36px;
+    height: 40px;
     border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--white);
+    border-radius: 12px;
+    background: var(--surface);
     padding: 0 12px;
     color: var(--text);
     outline: none;
@@ -149,8 +149,8 @@
 .dashboard-empty {
     min-height: 360px;
     border: 1px dashed var(--line);
-    border-radius: 18px;
-    background: var(--white);
+    border-radius: 20px;
+    background: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -175,10 +175,10 @@
 
 .dashboard-empty__create-btn {
     margin-top: 8px;
-    height: 40px;
+    height: 42px;
     padding: 0 16px;
     border: 1px solid var(--blue);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--blue);
     color: var(--white);
     font-weight: 700;
@@ -186,13 +186,13 @@
 }
 
 .dashboard-page__footer {
-    height: 30px;
+    height: 32px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     padding: 0 18px;
     border-top: 1px solid var(--line);
-    background: var(--white);
+    background: var(--surface);
     font-size: 12px;
     color: var(--muted);
 }

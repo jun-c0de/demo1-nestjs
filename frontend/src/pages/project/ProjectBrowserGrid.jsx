@@ -1,4 +1,4 @@
-import ProjectItemCard from "./ProjectItemCard";
+import ProjectItemCard from "./ProjectBrowserCard";
 
 export default function ProjectItemGrid({ projectId, items = [] }) {
     if (!Array.isArray(items) || items.length === 0) {

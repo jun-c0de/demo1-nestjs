@@ -11,7 +11,7 @@
     min-height: 0;
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
-    background: var(--surface);
+    background: var(--bg);
 }
 
 .app-shell__content {

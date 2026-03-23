@@ -1,281 +1,70 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getMe, logout } from "../../api/auth";
-import { getProject } from "../../api/projects";
-import { createDesign, getDesignsByProject } from "../../api/designs";
-import ThemeToggleButton from "../../components/ThemeToggleButton";
-import CreateDesignModal from "./CreateDesignModal";
-import ProjectItemGrid from "./ProjectItemGrid";
+import AppShell from "../../components/layout/AppShell";
+import { useAuth } from "../../contexts/AuthContext";
+import ProjectBrowserToolbar from "./ProjectBrowserToolbar.jsx";
+import ProjectBrowserGrid from "./ProjectBrowserGrid";
 
 export default function ProjectBrowserPage() {
     const navigate = useNavigate();
     const { projectId } = useParams();
+    const { user, logoutUser } = useAuth();
 
-    const [user, setUser] = useState(null);
-    const [project, setProject] = useState(null);
+    const [activeMenu, setActiveMenu] = useState("active");
+    const [counts, setCounts] = useState({
+        active: 0,
+        completed: 0,
+        trash: 0,
+        sharedWithMe: 0,
+        sharedByMe: 0,
+    });
+
+    const [viewMode, setViewMode] = useState("보통 아이콘");
+    const [sortMode, setSortMode] = useState("수정일순");
+    const [searchKeyword, setSearchKeyword] = useState("");
     const [items, setItems] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const [isCreateDesignModalOpen, setIsCreateDesignModalOpen] = useState(false);
-    const [designName, setDesignName] = useState("");
 
     useEffect(() => {
-        async function initializePage() {
-            try {
-                const [meData, projectData, designData] = await Promise.all([
-                    getMe(),
-                    getProject(projectId),
-                    getDesignsByProject(projectId),
-                ]);
+        // 여기서 projectId 기준 디자인/도면 목록 fetch
+    }, [projectId, searchKeyword, sortMode]);
 
-                setUser(meData);
-                setProject(projectData?.project || projectData || null);
-                setItems(
-                    Array.isArray(designData)
-                        ? designData
-                        : Array.isArray(designData?.items)
-                            ? designData.items
-                            : []
-                );
-            } catch (error) {
-                console.error("Project browser load error:", error);
-                navigate("/auth?mode=login", { replace: true });
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        if (projectId) {
-            initializePage();
-        }
-    }, [navigate, projectId]);
-
-    async function handleCreateDesign() {
-        const trimmedName = designName.trim();
-
-        if (!trimmedName) {
-            alert("디자인 이름을 입력해주세요.");
-            return;
-        }
-
-        try {
-            const data = await createDesign(projectId, { name: trimmedName });
-            const createdDesign = data?.design || data;
-            const newDesignId = createdDesign?.id || createdDesign?._id;
-
-            setItems((prev) => [createdDesign, ...prev]);
-            setIsCreateDesignModalOpen(false);
-            setDesignName("");
-
-            if (newDesignId) {
-                navigate(`/projects/${projectId}/designs/${newDesignId}`);
-            }
-        } catch (error) {
-            alert(error.message);
-        }
-    }
-
-    async function handleLogout() {
-        try {
-            await logout();
-        } catch (error) {
-            console.error("Logout failed:", error);
-        } finally {
-            navigate("/", { replace: true });
-        }
-    }
-
-    function goDashboardMenu(menu) {
-        navigate(`/dashboard?menu=${menu}`);
-    }
-
-    if (isLoading) {
-        return (
-            <div className="center-message-screen">
-                <div className="center-message-box">프로젝트 불러오는 중...</div>
-            </div>
-        );
-    }
-
-    if (!user || !project) {
-        return (
-            <div className="center-message-screen">
-                <div className="center-message-box">프로젝트 정보를 불러올 수 없습니다.</div>
-            </div>
-        );
-    }
+    const pageTitle = useMemo(() => "프로젝트 파일", []);
 
     return (
-        <div className="project-browser-shell">
-            <header className="dashboard-topbar">
-                <div
-                    className="brand-box"
-                    onClick={() => navigate("/dashboard")}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                            navigate("/dashboard");
-                        }
-                    }}
-                >
-                    <div className="brand-dots dashboard-brand-dots">
-                        <span />
-                        <span />
-                        <span />
-                    </div>
-                    <span className="brand-text">CRAFT</span>
-                </div>
-
-                <div className="dashboard-top-actions">
-                    <button type="button" className="icon-btn">🔔</button>
-                    <button type="button" className="icon-btn">⚙</button>
-                    <ThemeToggleButton />
-
-                    <button
-                        type="button"
-                        className="user-profile-trigger"
-                        onClick={handleLogout}
-                        aria-label="로그아웃"
-                    >
-                        {user?.picture || user?.avatar ? (
-                            <img
-                                src={user.picture || user.avatar}
-                                alt="user avatar"
-                                className="header-avatar"
-                            />
-                        ) : (
-                            <span className="header-avatar-fallback">
-                                {user?.name?.slice(0, 1).toUpperCase() || "U"}
-                            </span>
-                        )}
-                    </button>
-                </div>
-            </header>
-
-            <div className="project-browser-content">
-                <aside className="dashboard-sidebar">
-                    <button
-                        type="button"
-                        className="new-project-btn"
-                        onClick={() => navigate("/dashboard")}
-                    >
-                        ＋ 새 프로젝트
-                    </button>
-
-                    <div className="sidebar-section-title">빠른 액세스</div>
-
-                    <nav className="sidebar-nav">
-                        <button
-                            type="button"
-                            className="sidebar-item active"
-                            onClick={() => goDashboardMenu("active")}
-                        >
-                            <span>진행중 프로젝트</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            className="sidebar-item"
-                            onClick={() => goDashboardMenu("completed")}
-                        >
-                            <span>완료된 프로젝트</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            className="sidebar-item"
-                            onClick={() => goDashboardMenu("sharedWithMe")}
-                        >
-                            <span>공유받은 파일</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            className="sidebar-item"
-                            onClick={() => goDashboardMenu("sharedByMe")}
-                        >
-                            <span>공유한 파일</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            className="sidebar-item"
-                            onClick={() => goDashboardMenu("trash")}
-                        >
-                            <span>휴지통</span>
-                        </button>
-                    </nav>
-                </aside>
-
-                <main className="project-browser-main">
-                    <div className="project-browser-toolbar">
-                        <div className="project-browser-toolbar-left">
-                            <button
-                                type="button"
-                                className="project-browser-primary-btn"
-                                onClick={() => setIsCreateDesignModalOpen(true)}
-                            >
-                                ＋ 새 디자인
-                            </button>
-
-                            <button
-                                type="button"
-                                className="project-browser-secondary-btn"
-                                onClick={() => alert("새 폴더는 다음 단계에서 추가할게요.")}
-                            >
-                                ＋ 새 폴더
-                            </button>
-
-                            <div className="project-browser-breadcrumb">
-                                <span className="project-browser-breadcrumb-root">내 프로젝트</span>
-                                <span className="project-browser-divider">›</span>
-                                <span className="project-browser-breadcrumb-section">진행중 프로젝트</span>
-                                <span className="project-browser-divider">›</span>
-                                <span className="project-browser-current">{project.title}</span>
-                            </div>
-                        </div>
-
-                        <div className="project-browser-toolbar-right">
-                            <div className="search-container">
-                                <span className="search-icon">🔍</span>
-                                <input className="search-input" placeholder="검색..." />
-                            </div>
-
-                            <select className="toolbar-select" defaultValue="보통 아이콘">
-                                <option>아주 큰 아이콘</option>
-                                <option>큰 아이콘</option>
-                                <option>보통 아이콘</option>
-                                <option>목록</option>
-                                <option>자세히</option>
-                                <option>타일</option>
-                            </select>
-
-                            <select className="toolbar-select" defaultValue="수정일순">
-                                <option>수정일순</option>
-                                <option>이름순</option>
-                                <option>종류순</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="project-browser-grid-wrap">
-                        <ProjectItemGrid projectId={projectId} items={items} />
-                    </div>
-                </main>
-            </div>
-
-            {isCreateDesignModalOpen && (
-                <CreateDesignModal
-                    value={designName}
-                    onChange={setDesignName}
-                    onClose={() => {
-                        setIsCreateDesignModalOpen(false);
-                        setDesignName("");
-                    }}
-                    onSubmit={handleCreateDesign}
+        <AppShell
+            user={user}
+            activeMenu={activeMenu}
+            counts={counts}
+            onChangeMenu={setActiveMenu}
+            onCreateClick={() => navigate("/dashboard")}
+            onLogout={logoutUser}
+            onGoDashboard={() => navigate("/dashboard")}
+        >
+            <section className="project-browser-page">
+                <ProjectBrowserToolbar
+                    title={pageTitle}
+                    searchKeyword={searchKeyword}
+                    onChangeSearchKeyword={setSearchKeyword}
+                    viewMode={viewMode}
+                    onChangeViewMode={setViewMode}
+                    sortMode={sortMode}
+                    onChangeSortMode={setSortMode}
+                    onCreateDesign={() => { }}
+                    onCreateFolder={() => { }}
                 />
-            )}
-        </div>
+
+                <div className="project-browser-main">
+                    <ProjectBrowserGrid
+                        items={items}
+                        viewMode={viewMode}
+                        onOpenItem={(item) => { }}
+                    />
+                </div>
+
+                <div className="project-browser-footer">
+                    {items.length}개 항목
+                </div>
+            </section>
+        </AppShell>
     );
 }

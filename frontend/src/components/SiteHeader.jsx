@@ -11,23 +11,38 @@ export default function SiteHeader({
 
     return (
         <header className="site-header">
-            <div className="brand-box" onClick={() => navigate("/")}>
-                <div className="brand-dots">
+            <div
+                className="site-header__brand"
+                onClick={() => navigate("/")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate("/");
+                    }
+                }}
+            >
+                <div className="site-header__dots" aria-hidden="true">
                     <span />
                     <span />
                     <span />
                 </div>
-                <span className="brand-text">CRAFT</span>
+                <span className="site-header__text">CRAFT</span>
             </div>
 
-            <div className="header-actions">
-                {showThemeToggle && <ThemeToggleButton />}
+            <div className="site-header__actions">
+                {showThemeToggle && (
+                    <div className="site-header__theme-toggle">
+                        <ThemeToggleButton />
+                    </div>
+                )}
 
                 {!hideAuthButtons && (
                     <>
                         <button
                             type="button"
-                            className="header-link-btn"
+                            className="site-header__link-btn"
                             onClick={onLoginClick || (() => navigate("/auth?mode=login"))}
                         >
                             Login
@@ -35,7 +50,7 @@ export default function SiteHeader({
 
                         <button
                             type="button"
-                            className="header-pill-btn"
+                            className="site-header__pill-btn"
                             onClick={onSignupClick || (() => navigate("/auth?mode=signup"))}
                         >
                             Sign up

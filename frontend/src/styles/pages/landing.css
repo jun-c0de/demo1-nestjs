@@ -10,6 +10,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    background: var(--bg);
+    padding: 32px 20px 56px;
 }
 
 .hero-top-row {
@@ -75,10 +77,15 @@
 
     .hero-title {
         font-size: 80px;
+        text-align: center;
     }
 
     .hero-dots span {
         width: 24px;
         height: 24px;
+    }
+
+    .hero-section {
+        padding: 24px 16px 40px;
     }
 }

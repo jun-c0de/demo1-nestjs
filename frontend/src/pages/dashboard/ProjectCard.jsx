@@ -15,10 +15,29 @@ function formatDate(dateString) {
     });
 }
 
+function getOwnerText(project) {
+    if (project?.shareType === "withMe") {
+        return project?.ownerName || project?.ownerEmail || "공유받은 프로젝트";
+    }
+
+    if (project?.shareType === "byMe") {
+        return project?.ownerName || project?.ownerEmail || "내가 공유한 프로젝트";
+    }
+
+    return "";
+}
+
+function mapViewModeToCardClass(viewMode = "") {
+    if (viewMode === "목록") return "is-list";
+    if (viewMode === "자세히") return "is-detail";
+    return "is-grid";
+}
+
 export default function ProjectCard({
     project,
     activeMenu,
     isMenuOpen,
+    viewMode,
     onToggleMenu,
     onRenameClick,
     onShareClick,
@@ -29,10 +48,11 @@ export default function ProjectCard({
     onOpenProject,
 }) {
     const projectId = project?.id || project?._id;
+    const ownerText = getOwnerText(project);
 
-    function toggleMenu(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    function toggleMenu(event) {
+        event.preventDefault();
+        event.stopPropagation();
         onToggleMenu((prev) => (prev === projectId ? null : projectId));
     }
 
@@ -41,39 +61,67 @@ export default function ProjectCard({
         onOpenProject?.(project);
     }
 
+    function handleKeyDown(event) {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleOpenProject();
+        }
+    }
+
     return (
-        <div
-            className={`project-card ${isMenuOpen ? "project-card-menu-open" : ""}`}
+        <article
+            className={`project-card ${mapViewModeToCardClass(viewMode)} ${isMenuOpen ? "project-card--menu-open" : ""
+                }`}
+            role="button"
+            tabIndex={0}
             onClick={handleOpenProject}
-            onContextMenu={toggleMenu}
+            onKeyDown={handleKeyDown}
         >
             <button
                 type="button"
-                className="project-card-menu-btn"
-                onClick={toggleMenu}
+                className="project-card__menu-btn"
                 aria-label="프로젝트 메뉴 열기"
+                onClick={toggleMenu}
             >
                 ⋯
             </button>
 
-            <div className="project-card-icon">P</div>
-            <div className="project-card-title">{project?.title || "이름 없는 프로젝트"}</div>
-            <div className="project-card-meta">{project?.fileCount ?? 0}개 파일</div>
-            <div className="project-card-date">
-                {formatDate(project?.createdAt || project?.updatedAt)}
+            <div className="project-card__thumb" aria-hidden="true">
+                <span className="project-card__thumb-letter">
+                    {(project?.title || "P").charAt(0).toUpperCase()}
+                </span>
+            </div>
+
+            <div className="project-card__body">
+                <h3 className="project-card__title">
+                    {project?.title || "이름 없는 프로젝트"}
+                </h3>
+
+                <div className="project-card__meta-row">
+                    <span className="project-card__file-count">
+                        {project?.fileCount ?? 0}개 파일
+                    </span>
+                    {ownerText ? (
+                        <span className="project-card__share-badge">{ownerText}</span>
+                    ) : null}
+                </div>
+
+                <p className="project-card__date">
+                    {formatDate(project?.updatedAt || project?.createdAt)}
+                </p>
             </div>
 
             {isMenuOpen && (
                 <div
-                    className="project-card-menu-wrap"
-                    onClick={(e) => e.stopPropagation()}
-                    onContextMenu={(e) => e.stopPropagation()}
+                    className="project-card__menu-wrap"
+                    onClick={(event) => event.stopPropagation()}
+                    onContextMenu={(event) => event.stopPropagation()}
                 >
                     <ProjectContextMenu
-                        project={project}
                         activeMenu={activeMenu}
-                        onRenameClick={onRenameClick}
-                        onShareClick={onShareClick}
+                        project={project}
+                        onRenameClick={() => onRenameClick?.(project)}
+                        onShareClick={() => onShareClick?.(project)}
                         onMoveStatus={onMoveStatus}
                         onMoveToTrash={onMoveToTrash}
                         onDuplicate={onDuplicate}
@@ -82,6 +130,6 @@ export default function ProjectCard({
                     />
                 </div>
             )}
-        </div>
+        </article>
     );
 }

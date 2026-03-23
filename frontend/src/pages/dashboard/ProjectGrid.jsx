@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import ProjectCard from "./ProjectCard";
 
-function mapViewModeToClassName(viewMode) {
+function mapViewModeToClassName(viewMode = "") {
     return viewMode.replace(/\s+/g, "-");
 }
 
@@ -46,18 +46,24 @@ export default function ProjectGrid({
 
     if (isLoading) {
         return (
-            <div className="dashboard-empty-state">
-                <div className="empty-file-icon">…</div>
-                <p>프로젝트 불러오는 중...</p>
+            <div className="project-grid project-grid--loading">
+                {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={index} className="project-card project-card--skeleton">
+                        <div className="project-card__thumb project-card__thumb--skeleton" />
+                        <div className="project-card__line project-card__line--title" />
+                        <div className="project-card__line project-card__line--meta" />
+                        <div className="project-card__line project-card__line--date" />
+                    </div>
+                ))}
             </div>
         );
     }
 
     if (!Array.isArray(projects) || projects.length === 0) {
         return (
-            <div className="dashboard-empty-state">
-                <div className="empty-file-icon">P</div>
-                <p>항목이 없습니다</p>
+            <div className="project-grid-empty">
+                <div className="project-grid-empty__icon">P</div>
+                <p className="project-grid-empty__text">항목이 없습니다</p>
             </div>
         );
     }
@@ -65,7 +71,7 @@ export default function ProjectGrid({
     return (
         <div
             ref={gridRef}
-            className={`project-grid view-${mapViewModeToClassName(viewMode)}`}
+            className={`project-grid project-grid--${mapViewModeToClassName(viewMode)}`}
         >
             {projects.map((project) => {
                 const projectId = project.id || project._id;
@@ -76,6 +82,7 @@ export default function ProjectGrid({
                         project={project}
                         activeMenu={activeMenu}
                         isMenuOpen={openMenuProjectId === projectId}
+                        viewMode={viewMode}
                         onToggleMenu={onToggleMenu}
                         onRenameClick={onRenameClick}
                         onShareClick={onShareClick}

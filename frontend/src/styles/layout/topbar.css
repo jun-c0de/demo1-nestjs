@@ -1,10 +1,10 @@
 .topbar {
-    height: 58px;
+    height: 72px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px 0 18px;
-    background: var(--white);
+    padding: 0 24px;
+    background: var(--surface);
     border-bottom: 1px solid var(--line);
     flex-shrink: 0;
     position: relative;
@@ -20,34 +20,28 @@
 }
 
 .topbar__brand-text {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.03em;
     color: var(--text);
 }
 
 .topbar__actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .topbar__create-btn {
-    height: 36px;
-    padding: 0 14px;
+    height: 40px;
+    padding: 0 16px;
     border: 1px solid var(--blue);
-    border-radius: 10px;
-    background: var(--white);
+    border-radius: 12px;
+    background: var(--surface);
     color: var(--blue);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.topbar__create-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(75, 132, 239, 0.12);
 }
 
 .topbar__theme-toggle {
@@ -57,11 +51,11 @@
 }
 
 .topbar__profile-btn {
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: var(--white);
+    background: var(--surface);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -73,7 +67,6 @@
 .topbar__avatar-image {
     width: 100%;
     height: 100%;
-    border-radius: 999px;
     object-fit: cover;
 }
 
@@ -85,15 +78,16 @@
 
 @media (max-width: 768px) {
     .topbar {
-        padding: 0 12px;
+        height: 64px;
+        padding: 0 14px;
     }
 
     .topbar__brand-text {
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .topbar__create-btn {
-        padding: 0 10px;
+        padding: 0 12px;
         font-size: 13px;
     }
 }

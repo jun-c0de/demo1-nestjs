@@ -9,7 +9,7 @@ export default function DashboardToolbar({
     sortMode,
     onChangeSortMode,
 }) {
-    const [isBreadcrumbOpen, setIsBreadcrumbOpen] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const subProjects = [
         { name: "ㅇㅇ", date: "2026.03.19" },
@@ -20,25 +20,13 @@ export default function DashboardToolbar({
     return (
         <div className="dashboard-toolbar">
             <div className="dashboard-toolbar__left">
-                <button
-                    type="button"
-                    className="dashboard-toolbar__nav-btn"
-                    aria-label="뒤로"
-                >
+                <button type="button" className="dashboard-toolbar__nav-btn" aria-label="뒤로">
                     ‹
                 </button>
-                <button
-                    type="button"
-                    className="dashboard-toolbar__nav-btn"
-                    aria-label="앞으로"
-                >
+                <button type="button" className="dashboard-toolbar__nav-btn" aria-label="앞으로">
                     ›
                 </button>
-                <button
-                    type="button"
-                    className="dashboard-toolbar__nav-btn"
-                    aria-label="위로"
-                >
+                <button type="button" className="dashboard-toolbar__nav-btn" aria-label="위로">
                     ↑
                 </button>
 
@@ -46,7 +34,7 @@ export default function DashboardToolbar({
                     <button
                         type="button"
                         className="dashboard-toolbar__breadcrumb"
-                        onClick={() => setIsBreadcrumbOpen((prev) => !prev)}
+                        onClick={() => setIsDropdownOpen((prev) => !prev)}
                     >
                         <span className="dashboard-toolbar__title">내 프로젝트</span>
                         <span className="dashboard-toolbar__breadcrumb-sep">›</span>
@@ -54,14 +42,14 @@ export default function DashboardToolbar({
                         <span className="dashboard-toolbar__caret">⌵</span>
                     </button>
 
-                    {isBreadcrumbOpen && (
+                    {isDropdownOpen && (
                         <div className="dashboard-toolbar__dropdown">
                             {subProjects.map((item, idx) => (
                                 <button
                                     key={`${item.name}-${idx}`}
                                     type="button"
                                     className="dashboard-toolbar__dropdown-item"
-                                    onClick={() => setIsBreadcrumbOpen(false)}
+                                    onClick={() => setIsDropdownOpen(false)}
                                 >
                                     <span className="dashboard-toolbar__dropdown-name">
                                         {item.name}

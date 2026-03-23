@@ -1,5 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { clearAccessToken, getMe, logout } from "../api/auth";
+import {
+    getMe,
+    logout,
+    clearAccessToken,
+    setAccessToken,
+} from "../api/auth";
 
 const AuthContext = createContext(null);
 
@@ -9,6 +14,7 @@ export function AuthProvider({ children }) {
 
     async function bootstrapAuth() {
         const token = localStorage.getItem("accessToken");
+
         if (!token) {
             setAuthLoading(false);
             return;
@@ -27,7 +33,7 @@ export function AuthProvider({ children }) {
 
     async function loginUser(nextUser, accessToken) {
         if (accessToken) {
-            localStorage.setItem("accessToken", accessToken);
+            setAccessToken(accessToken);
         }
         setUser(nextUser);
     }
@@ -36,8 +42,9 @@ export function AuthProvider({ children }) {
         try {
             await logout();
         } catch (_) {
-            clearAccessToken();
+            // ignore
         } finally {
+            clearAccessToken();
             setUser(null);
             window.location.href = "/";
         }
@@ -63,5 +70,11 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-    return useContext(AuthContext);
+    const context = useContext(AuthContext);
+
+    if (!context) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+
+    return context;
 }

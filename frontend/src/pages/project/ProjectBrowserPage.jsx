@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { clearToken, getMe } from "../../api/auth";
+import { useNavigate, useParams } from "react-router-dom";
+import { clearAccessToken, getMe } from "../../api/auth";
 import { getProject } from "../../api/projects";
 import { createDesign, getDesignsByProject } from "../../api/designs";
 import ThemeToggleButton from "../../components/ThemeToggleButton";
@@ -32,14 +32,17 @@ export default function ProjectBrowserPage() {
                 setProject(projectData);
                 setItems(Array.isArray(designData) ? designData : []);
             } catch (error) {
-                clearToken();
+                console.error("Project browser load error:", error);
+                clearAccessToken();
                 navigate("/auth?mode=login", { replace: true });
             } finally {
                 setIsLoading(false);
             }
         }
 
-        initializePage();
+        if (projectId) {
+            initializePage();
+        }
     }, [navigate, projectId]);
 
     async function handleCreateDesign() {
@@ -55,14 +58,18 @@ export default function ProjectBrowserPage() {
             setItems((prev) => [data, ...prev]);
             setIsCreateDesignModalOpen(false);
             setDesignName("");
-            navigate(`/projects/${projectId}/designs/${data.id}`);
+
+            const newDesignId = data?.id || data?._id;
+            if (newDesignId) {
+                navigate(`/projects/${projectId}/designs/${newDesignId}`);
+            }
         } catch (error) {
             alert(error.message);
         }
     }
 
     function handleLogout() {
-        clearToken();
+        clearAccessToken();
         navigate("/", { replace: true });
     }
 
@@ -70,7 +77,7 @@ export default function ProjectBrowserPage() {
         navigate(`/dashboard?menu=${menu}`);
     }
 
-    if (isLoading || !user || !project) {
+    if (isLoading) {
         return (
             <div className="center-message-screen">
                 <div className="center-message-box">프로젝트 불러오는 중...</div>
@@ -78,10 +85,28 @@ export default function ProjectBrowserPage() {
         );
     }
 
+    if (!user || !project) {
+        return (
+            <div className="center-message-screen">
+                <div className="center-message-box">프로젝트 정보를 불러올 수 없습니다.</div>
+            </div>
+        );
+    }
+
     return (
         <div className="project-browser-shell">
             <header className="dashboard-topbar">
-                <div className="brand-box" onClick={() => navigate("/dashboard")}>
+                <div
+                    className="brand-box"
+                    onClick={() => navigate("/dashboard")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                            navigate("/dashboard");
+                        }
+                    }}
+                >
                     <div className="brand-dots dashboard-brand-dots">
                         <span />
                         <span />
@@ -100,7 +125,7 @@ export default function ProjectBrowserPage() {
                             <img src={user.avatar} alt="user avatar" className="user-avatar" />
                         ) : (
                             <span className="user-avatar user-avatar-fallback">
-                                {user.name?.slice(0, 1).toUpperCase()}
+                                {user.name?.slice(0, 1).toUpperCase() || "U"}
                             </span>
                         )}
                     </button>

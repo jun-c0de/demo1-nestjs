@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { clearToken, getMe } from "../../api/auth";
+import { useNavigate, useParams } from "react-router-dom";
+import { clearAccessToken, getMe } from "../../api/auth";
 import { getProject } from "../../api/projects";
 import { getDesign, updateDesign } from "../../api/designs";
 import ThemeToggleButton from "../../components/ThemeToggleButton";
@@ -37,15 +37,17 @@ export default function ProjectEditorPage() {
                 setProject(projectData);
                 setDesign(designData);
             } catch (error) {
-                console.error(error);
-                clearToken();
+                console.error("Project editor load error:", error);
+                clearAccessToken();
                 navigate("/auth?mode=login", { replace: true });
             } finally {
                 setIsLoading(false);
             }
         }
 
-        initializePage();
+        if (projectId && designId) {
+            initializePage();
+        }
     }, [navigate, projectId, designId, setProject, setDesign]);
 
     async function handleSave() {
@@ -67,14 +69,22 @@ export default function ProjectEditorPage() {
     }
 
     function handleLogout() {
-        clearToken();
+        clearAccessToken();
         navigate("/", { replace: true });
     }
 
-    if (isLoading || !user || !project || !design) {
+    if (isLoading) {
         return (
             <div className="center-message-screen">
                 <div className="center-message-box">디자인 불러오는 중...</div>
+            </div>
+        );
+    }
+
+    if (!user || !project || !design) {
+        return (
+            <div className="center-message-screen">
+                <div className="center-message-box">디자인 정보를 불러올 수 없습니다.</div>
             </div>
         );
     }
@@ -83,7 +93,17 @@ export default function ProjectEditorPage() {
         <div className="editor-page">
             <header className="editor-header">
                 <div className="editor-header-left">
-                    <div className="brand-box" onClick={() => navigate("/dashboard")}>
+                    <div
+                        className="brand-box"
+                        onClick={() => navigate("/dashboard")}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                navigate("/dashboard");
+                            }
+                        }}
+                    >
                         <div className="brand-dots dashboard-brand-dots">
                             <span />
                             <span />
@@ -127,7 +147,7 @@ export default function ProjectEditorPage() {
                             <img src={user.avatar} alt="user avatar" className="user-avatar" />
                         ) : (
                             <span className="user-avatar user-avatar-fallback">
-                                {user.name?.slice(0, 1).toUpperCase()}
+                                {user.name?.slice(0, 1).toUpperCase() || "U"}
                             </span>
                         )}
                     </button>

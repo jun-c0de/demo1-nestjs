@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { login, signup } from "../api/auth";
+import { getMe, login, signup } from "../api/auth";
 import { useAuth } from "../contexts/AuthContext";
 import SiteHeader from "../components/SiteHeader";
 
-const BACKEND_ORIGIN = import.meta.env.VITE_BACKEND_ORIGIN;
+const BACKEND_ORIGIN = import.meta.env.VITE_API_BASE_URL;
 
 export default function AuthPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const [searchParams] = useSearchParams();
-    const { user, checkAuth } = useAuth();
+    const { user, setUser } = useAuth();
 
     const mode = searchParams.get("mode") === "signup" ? "signup" : "login";
     const isLogin = mode === "login";
@@ -18,7 +18,6 @@ export default function AuthPage() {
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
-    // 로그인 후 원래 가려던 페이지 정보
     const from = location.state?.from?.pathname || "/dashboard";
 
     const [loginForm, setLoginForm] = useState({
@@ -32,45 +31,43 @@ export default function AuthPage() {
         password: "",
     });
 
-    // 이미 유저 정보가 있다면 리다이렉트
     useEffect(() => {
         if (user) {
             navigate(from, { replace: true });
         }
     }, [user, navigate, from]);
 
-    // --- 구글 로그인 팝업 메시지 수신 로직 ---
     useEffect(() => {
         async function handleMessage(event) {
-            // 보안을 위해 백엔드 오리진 확인
             if (event.origin !== BACKEND_ORIGIN) return;
 
             const data = event.data;
             if (!data || !data.type) return;
 
-            // 백엔드(generatePopupScript)에서 보낸 성공 타입 확인
             if (data.type === "GOOGLE_AUTH_SUCCESS") {
-                // NestJS에서 넘겨준 결과 데이터에서 토큰 추출
-                const { accessToken } = data.data;
+                try {
+                    const { accessToken } = data.data || {};
 
-                // 토큰 저장
-                localStorage.setItem("accessToken", accessToken);
+                    if (accessToken) {
+                        localStorage.setItem("accessToken", accessToken);
+                    }
 
-                // AuthContext의 유저 정보 동기화
-                await checkAuth();
-
-                // 성공 시 대시보드로 이동
-                navigate(from, { replace: true });
+                    const me = await getMe();
+                    setUser(me);
+                    navigate(from, { replace: true });
+                } catch (err) {
+                    setError(err.message || "Google 로그인 처리에 실패했습니다.");
+                }
             }
 
             if (data.type === "GOOGLE_AUTH_ERROR") {
-                alert(data.data?.message || "Google 로그인에 실패했습니다.");
+                setError(data.data?.message || "Google 로그인에 실패했습니다.");
             }
         }
 
         window.addEventListener("message", handleMessage);
         return () => window.removeEventListener("message", handleMessage);
-    }, [navigate, from, checkAuth]);
+    }, [navigate, from, setUser]);
 
     function handleLoginChange(e) {
         setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
@@ -83,6 +80,7 @@ export default function AuthPage() {
     async function handleSubmit(e) {
         e.preventDefault();
         setError("");
+
         try {
             if (isLogin) {
                 await login(loginForm);
@@ -93,7 +91,9 @@ export default function AuthPage() {
                     password: signupForm.password,
                 });
             }
-            await checkAuth();
+
+            const me = await getMe();
+            setUser(me);
             navigate(from, { replace: true });
         } catch (err) {
             setError(err.message);
@@ -106,7 +106,6 @@ export default function AuthPage() {
         const left = window.screenX + (window.outerWidth - width) / 2;
         const top = window.screenY + (window.outerHeight - height) / 2;
 
-        // 백엔드 엔드포인트 호출
         const popup = window.open(
             `${BACKEND_ORIGIN}/api/auth/google`,
             "googleLoginPopup",
@@ -199,27 +198,50 @@ export default function AuthPage() {
                         </button>
                     </form>
 
-                    {error && <p className="error-text" style={{ color: 'var(--error-color)', marginTop: '1rem' }}>{error}</p>}
+                    {error && (
+                        <p
+                            className="error-text"
+                            style={{ color: "var(--error-color)", marginTop: "1rem" }}
+                        >
+                            {error}
+                        </p>
+                    )}
 
                     <p className="auth-divider-text">OR CONTINUE WITH</p>
 
                     <div className="social-icon-row">
-                        <button type="button" className="social-icon-btn google" onClick={handleGoogleLogin}>
+                        <button
+                            type="button"
+                            className="social-icon-btn google"
+                            onClick={handleGoogleLogin}
+                        >
                             G
                         </button>
-                        <button type="button" className="social-icon-btn kakao" onClick={handleKakaoLogin}>
+                        <button
+                            type="button"
+                            className="social-icon-btn kakao"
+                            onClick={handleKakaoLogin}
+                        >
                             K
                         </button>
-                        <button type="button" className="social-icon-btn naver" onClick={handleNaverLogin}>
+                        <button
+                            type="button"
+                            className="social-icon-btn naver"
+                            onClick={handleNaverLogin}
+                        >
                             N
                         </button>
                     </div>
 
                     <p className="auth-bottom-text">
                         {isLogin ? (
-                            <>Don&apos;t have an account? <Link to="/auth?mode=signup">Sign up</Link></>
+                            <>
+                                Don&apos;t have an account? <Link to="/auth?mode=signup">Sign up</Link>
+                            </>
                         ) : (
-                            <>Already have an account? <Link to="/auth?mode=login">Sign in</Link></>
+                            <>
+                                Already have an account? <Link to="/auth?mode=login">Sign in</Link>
+                            </>
                         )}
                     </p>
                 </div>

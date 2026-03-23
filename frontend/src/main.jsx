@@ -15,6 +15,8 @@ import "./styles/pages/landing.css";
 import "./styles/pages/auth.css";
 import "./styles/pages/dashboard.css";
 import "./styles/pages/project-editor.css";
+import "./styles/components/profile-menu.css";
+import "./styles/pages/project-browser.css";
 
 const savedTheme = localStorage.getItem("theme") || "light";
 document.documentElement.setAttribute("data-theme", savedTheme);

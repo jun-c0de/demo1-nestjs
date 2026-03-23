@@ -1,0 +1,224 @@
+.user-profile-trigger {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.header-avatar,
+.header-avatar-fallback {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+}
+
+.header-avatar {
+    object-fit: cover;
+}
+
+.header-avatar-fallback {
+    background: #d7dbe3;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.profile-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(0, 0, 0, 0.12);
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+.profile-menu-panel {
+    width: 360px;
+    min-height: 100vh;
+    background: #fff;
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-menu-header {
+    background: linear-gradient(135deg, #4f86ff, #2f66e0);
+    color: #fff;
+    padding: 20px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.profile-menu-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-menu-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-menu-avatar-fallback {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.profile-menu-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-menu-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.profile-menu-email {
+    font-size: 0.95rem;
+    opacity: 0.95;
+}
+
+.profile-menu-close {
+    border: 0;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.profile-menu-section {
+    padding: 18px 16px;
+    border-bottom: 1px solid #e7eaf0;
+}
+
+.profile-menu-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 14px;
+}
+
+.profile-menu-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+}
+
+.profile-menu-info-label {
+    color: #596273;
+    font-weight: 500;
+}
+
+.profile-menu-info-value {
+    color: #1d2433;
+    font-weight: 600;
+}
+
+.profile-menu-action {
+    width: 100%;
+    border: 1px solid #e1e6ef;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-plan-card {
+    margin: 16px;
+    border: 1px solid #4f86ff;
+    background: #eef4ff;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.profile-plan-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.profile-plan-title {
+    font-weight: 700;
+    color: #24324a;
+}
+
+.profile-plan-badge {
+    display: inline-flex;
+    width: fit-content;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #4f86ff;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.profile-plan-credit-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.profile-plan-credit-label {
+    font-weight: 700;
+    color: #1d2433;
+}
+
+.profile-plan-credit-sub {
+    font-size: 0.82rem;
+    color: #6d7788;
+    margin-top: 4px;
+}
+
+.profile-plan-credit-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1d2433;
+}
+
+.profile-plan-projects {
+    padding: 10px 0 14px;
+    color: #1d2433;
+    font-weight: 600;
+}
+
+.profile-plan-upgrade-btn {
+    width: 100%;
+    border: 0;
+    border-radius: 12px;
+    padding: 14px;
+    background: #4f86ff;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}

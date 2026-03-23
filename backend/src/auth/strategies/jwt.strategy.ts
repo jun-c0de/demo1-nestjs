@@ -3,7 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
-import { CurrentUser } from '../interfaces/current-user.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,11 +13,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: configService.get<string>('JWT_ACCESS_SECRET')!,
+            secretOrKey: configService.get('JWT_ACCESS_SECRET')!,
         });
     }
 
-    async validate(payload: any): Promise<CurrentUser> {
+    async validate(payload: any): Promise<any> {
         const user = await this.authService.me(payload.sub);
 
         if (!user) {
@@ -27,10 +26,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
         return {
             userId: user._id.toString(),
+            _id: user._id.toString(),
             email: user.email,
             name: user.name,
             role: user.role,
             provider: user.provider,
+            avatar: user.avatar || '',
+            picture: user.picture || user.avatar || '',
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            lastLoginAt: user.lastLoginAt || null,
         };
     }
 }

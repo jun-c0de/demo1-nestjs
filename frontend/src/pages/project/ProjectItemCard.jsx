@@ -1,7 +1,10 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 function formatDate(dateString) {
+    if (!dateString) return "-";
+
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "-";
 
     return date.toLocaleString("ko-KR", {
         year: "numeric",
@@ -15,20 +18,28 @@ function formatDate(dateString) {
 export default function ProjectItemCard({ projectId, item }) {
     const navigate = useNavigate();
 
+    if (!item) return null;
+
+    const itemId = item.id || item._id;
+    const width = item.room?.width ?? 3600;
+    const depth = item.room?.depth ?? 600;
+    const height = item.room?.height ?? 2360;
+
+    function handleOpenDesign() {
+        if (!itemId) return;
+        navigate(`/projects/${projectId}/designs/${itemId}`);
+    }
+
     return (
-        <div
-            className="design-item-card"
-            onClick={() => navigate(`/projects/${projectId}/designs/${item.id}`)}
-        >
+        <div className="design-item-card" onClick={handleOpenDesign}>
             <div className="design-item-icon">📄</div>
-
-            <div className="design-item-title">{item.name}</div>
-
+            <div className="design-item-title">{item.name || "이름 없는 디자인"}</div>
             <div className="design-item-meta">
-                {item.room?.width ?? 3600} × {item.room?.depth ?? 600} × {item.room?.height ?? 2360}
+                {width} × {depth} × {height}
             </div>
-
-            <div className="design-item-date">{formatDate(item.createdAt)}</div>
+            <div className="design-item-date">
+                {formatDate(item.updatedAt || item.createdAt)}
+            </div>
         </div>
     );
 }

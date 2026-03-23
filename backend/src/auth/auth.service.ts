@@ -131,6 +131,7 @@ export class AuthService {
       password: hashedPassword,
       name,
       provider: 'local',
+      lastLoginAt: new Date(),
     });
 
     const tokens = await this.issueAuthTokens(user, meta);
@@ -155,6 +156,9 @@ export class AuthService {
         '이메일 또는 비밀번호가 일치하지 않습니다.',
       );
     }
+
+    user.lastLoginAt = new Date();
+    await user.save();
 
     const tokens = await this.issueAuthTokens(user, meta);
     return tokens;
@@ -198,6 +202,9 @@ export class AuthService {
       if (!user) {
         throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
       }
+
+      user.lastLoginAt = new Date();
+      await user.save();
 
       return this.issueAuthTokens(user, meta);
     } catch (e: any) {
@@ -276,12 +283,14 @@ export class AuthService {
         avatar: profile.picture,
         password: hashedPassword,
         provider: 'google',
+        lastLoginAt: new Date(),
       });
     } else {
       user.name = user.name || profile.name || 'Google User';
       user.googleId = profile.id || user.googleId;
       user.avatar = profile.picture || user.avatar;
       user.provider = 'google';
+      user.lastLoginAt = new Date();
       await user.save();
     }
 
@@ -318,12 +327,14 @@ export class AuthService {
         password: hashedPassword,
         googleId: profile.googleId,
         provider: 'google',
+        lastLoginAt: new Date(),
       });
     } else {
       user.name = user.name || profile.name || 'Google User';
       user.avatar = profile.picture || user.avatar;
       user.googleId = profile.googleId || user.googleId;
       user.provider = 'google';
+      user.lastLoginAt = new Date();
       await user.save();
     }
 

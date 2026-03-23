@@ -7,62 +7,86 @@ export default function ProjectContextMenu({
     onMoveToTrash,
     onDuplicate,
     onPermanentDelete,
+    onClose,
 }) {
+    const projectId = project.id || project._id;
+    const isSharedMenu =
+        activeMenu === "sharedWithMe" || activeMenu === "sharedByMe";
+
+    function handleAction(action) {
+        action?.();
+        onClose?.();
+    }
+
     return (
-        <div className="project-context-menu">
+        <div
+            className="project-context-menu"
+            onClick={(e) => e.stopPropagation()}
+            onContextMenu={(e) => e.preventDefault()}
+        >
             {activeMenu !== "trash" && (
                 <>
                     <button
                         type="button"
                         className="project-menu-item"
-                        onClick={() => onRenameClick(project)}
+                        onClick={() => handleAction(() => onRenameClick(project))}
                     >
                         이름 바꾸기
                     </button>
 
-                    <button
-                        type="button"
-                        className="project-menu-item"
-                        onClick={() => onShareClick(project)}
-                    >
-                        공유
-                    </button>
-
-                    {activeMenu !== "completed" && (
+                    {!isSharedMenu && (
                         <button
                             type="button"
                             className="project-menu-item"
-                            onClick={() => onMoveStatus(project.id, "completed")}
+                            onClick={() => handleAction(() => onShareClick(project))}
+                        >
+                            공유
+                        </button>
+                    )}
+
+                    {activeMenu !== "completed" && !isSharedMenu && (
+                        <button
+                            type="button"
+                            className="project-menu-item"
+                            onClick={() =>
+                                handleAction(() => onMoveStatus(projectId, "completed"))
+                            }
                         >
                             완료된 프로젝트로 이동
                         </button>
                     )}
 
-                    {activeMenu !== "active" && (
+                    {activeMenu !== "active" && activeMenu !== "sharedWithMe" && (
                         <button
                             type="button"
                             className="project-menu-item"
-                            onClick={() => onMoveStatus(project.id, "active")}
+                            onClick={() =>
+                                handleAction(() => onMoveStatus(projectId, "active"))
+                            }
                         >
                             진행중 프로젝트로 이동
                         </button>
                     )}
 
-                    <button
-                        type="button"
-                        className="project-menu-item"
-                        onClick={() => onDuplicate(project.id)}
-                    >
-                        복제
-                    </button>
+                    {!isSharedMenu && (
+                        <button
+                            type="button"
+                            className="project-menu-item"
+                            onClick={() => handleAction(() => onDuplicate(projectId))}
+                        >
+                            복제
+                        </button>
+                    )}
 
-                    <button
-                        type="button"
-                        className="project-menu-item project-menu-item-danger"
-                        onClick={() => onMoveToTrash(project.id)}
-                    >
-                        삭제
-                    </button>
+                    {activeMenu !== "sharedWithMe" && (
+                        <button
+                            type="button"
+                            className="project-menu-item project-menu-item-danger"
+                            onClick={() => handleAction(() => onMoveToTrash(projectId))}
+                        >
+                            삭제
+                        </button>
+                    )}
                 </>
             )}
 
@@ -71,7 +95,7 @@ export default function ProjectContextMenu({
                     <button
                         type="button"
                         className="project-menu-item"
-                        onClick={() => onMoveStatus(project.id, "active")}
+                        onClick={() => handleAction(() => onMoveStatus(projectId, "active"))}
                     >
                         복구
                     </button>
@@ -79,9 +103,9 @@ export default function ProjectContextMenu({
                     <button
                         type="button"
                         className="project-menu-item project-menu-item-danger"
-                        onClick={() => onPermanentDelete(project.id)}
+                        onClick={() => handleAction(() => onPermanentDelete(projectId))}
                     >
-                        삭제
+                        영구 삭제
                     </button>
                 </>
             )}

@@ -1,10 +1,8 @@
 export default function DashboardSidebar({
-    user,
     counts,
     activeMenu,
     onMenuChange,
     onCreateProject,
-    onLogout,
 }) {
     return (
         <aside className="dashboard-sidebar">

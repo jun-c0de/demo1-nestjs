@@ -13,6 +13,7 @@ import {
 import { getSharedByMe, getSharedWithMe } from "../../api/shares";
 
 import ThemeToggleButton from "../../components/ThemeToggleButton";
+import ProfileMenu from "../../components/ProfileMenu";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardToolbar from "./DashboardToolbar";
 import ProjectGrid from "./ProjectGrid";
@@ -58,6 +59,7 @@ export default function DashboardPage() {
     const [renameTarget, setRenameTarget] = useState(null);
     const [renameValue, setRenameValue] = useState("");
     const [shareTarget, setShareTarget] = useState(null);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     async function refreshCounts() {
         try {
@@ -139,6 +141,7 @@ export default function DashboardPage() {
 
     async function handleCreateProject() {
         const trimmedTitle = projectTitle.trim();
+
         if (!trimmedTitle) {
             alert("이름을 입력해주세요.");
             return;
@@ -146,9 +149,11 @@ export default function DashboardPage() {
 
         try {
             const data = await createProject({ title: trimmedTitle });
+
             if (activeMenu === "active") {
                 setProjects((prev) => [data.project || data, ...prev]);
             }
+
             await refreshCounts();
             setIsCreateModalOpen(false);
             setProjectTitle("");
@@ -160,9 +165,7 @@ export default function DashboardPage() {
     async function handleMoveStatus(projectId, status) {
         try {
             await updateProjectStatus(projectId, { status });
-            setProjects((prev) =>
-                prev.filter((p) => (p.id || p._id) !== projectId)
-            );
+            setProjects((prev) => prev.filter((p) => (p.id || p._id) !== projectId));
             setOpenMenuProjectId(null);
             await refreshCounts();
         } catch (error) {
@@ -175,9 +178,7 @@ export default function DashboardPage() {
 
         try {
             await deleteProjectForever(projectId);
-            setProjects((prev) =>
-                prev.filter((p) => (p.id || p._id) !== projectId)
-            );
+            setProjects((prev) => prev.filter((p) => (p.id || p._id) !== projectId));
             setOpenMenuProjectId(null);
             await refreshCounts();
         } catch (error) {
@@ -188,9 +189,11 @@ export default function DashboardPage() {
     async function handleDuplicate(projectId) {
         try {
             const data = await duplicateProject(projectId);
+
             if (activeMenu === "active") {
                 setProjects((prev) => [data.project || data, ...prev]);
             }
+
             await refreshCounts();
             setOpenMenuProjectId(null);
         } catch (error) {
@@ -270,42 +273,33 @@ export default function DashboardPage() {
                     <button type="button" className="icon-btn">⚙</button>
                     <ThemeToggleButton />
 
-                    <div className="user-profile-header">
+                    <button
+                        type="button"
+                        className="user-profile-trigger"
+                        onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                        aria-label="프로필 메뉴 열기"
+                    >
                         {user?.picture ? (
                             <img
                                 src={user.picture}
                                 alt="profile"
                                 className="header-avatar"
-                                style={{ width: "32px", height: "32px", borderRadius: "50%" }}
                             />
                         ) : (
-                            <div
-                                className="header-avatar-fallback"
-                                style={{
-                                    width: "32px",
-                                    height: "32px",
-                                    borderRadius: "50%",
-                                    backgroundColor: "#ccc",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                            >
+                            <div className="header-avatar-fallback">
                                 {user?.name?.charAt(0) || "U"}
                             </div>
                         )}
-                    </div>
+                    </button>
                 </div>
             </header>
 
             <div className="dashboard-content">
                 <DashboardSidebar
-                    user={user}
                     counts={counts}
                     activeMenu={activeMenu}
                     onMenuChange={setActiveMenu}
                     onCreateProject={() => setIsCreateModalOpen(true)}
-                    onLogout={logoutUser}
                 />
 
                 <main className="dashboard-main">
@@ -317,10 +311,6 @@ export default function DashboardPage() {
                         onViewModeChange={setViewMode}
                         sortMode={sortMode}
                         onSortModeChange={setSortMode}
-                        isBrowserMode={false}
-                        projectTitle=""
-                        onCreateDesign={null}
-                        onCreateFolder={() => alert("새 폴더는 다음 단계에서 추가할게요.")}
                     />
 
                     <div className="project-display-area">
@@ -402,6 +392,17 @@ export default function DashboardPage() {
                     onShared={refreshCounts}
                 />
             )}
+
+            <ProfileMenu
+                user={user}
+                isOpen={isProfileMenuOpen}
+                onClose={() => setIsProfileMenuOpen(false)}
+                onLogout={logoutUser}
+                onOpenSettings={() => {
+                    setIsProfileMenuOpen(false);
+                    alert("계정 설정은 다음 단계에서 연결할게요.");
+                }}
+            />
         </div>
     );
 }

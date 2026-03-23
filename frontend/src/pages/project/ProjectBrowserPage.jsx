@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { clearAccessToken, getMe } from "../../api/auth";
+import { getMe, logout } from "../../api/auth";
 import { getProject } from "../../api/projects";
 import { createDesign, getDesignsByProject } from "../../api/designs";
 import ThemeToggleButton from "../../components/ThemeToggleButton";
@@ -29,11 +29,16 @@ export default function ProjectBrowserPage() {
                 ]);
 
                 setUser(meData);
-                setProject(projectData);
-                setItems(Array.isArray(designData) ? designData : []);
+                setProject(projectData?.project || projectData || null);
+                setItems(
+                    Array.isArray(designData)
+                        ? designData
+                        : Array.isArray(designData?.items)
+                            ? designData.items
+                            : []
+                );
             } catch (error) {
                 console.error("Project browser load error:", error);
-                clearAccessToken();
                 navigate("/auth?mode=login", { replace: true });
             } finally {
                 setIsLoading(false);
@@ -55,11 +60,13 @@ export default function ProjectBrowserPage() {
 
         try {
             const data = await createDesign(projectId, { name: trimmedName });
-            setItems((prev) => [data, ...prev]);
+            const createdDesign = data?.design || data;
+            const newDesignId = createdDesign?.id || createdDesign?._id;
+
+            setItems((prev) => [createdDesign, ...prev]);
             setIsCreateDesignModalOpen(false);
             setDesignName("");
 
-            const newDesignId = data?.id || data?._id;
             if (newDesignId) {
                 navigate(`/projects/${projectId}/designs/${newDesignId}`);
             }
@@ -68,9 +75,14 @@ export default function ProjectBrowserPage() {
         }
     }
 
-    function handleLogout() {
-        clearAccessToken();
-        navigate("/", { replace: true });
+    async function handleLogout() {
+        try {
+            await logout();
+        } catch (error) {
+            console.error("Logout failed:", error);
+        } finally {
+            navigate("/", { replace: true });
+        }
     }
 
     function goDashboardMenu(menu) {
@@ -120,12 +132,21 @@ export default function ProjectBrowserPage() {
                     <button type="button" className="icon-btn">⚙</button>
                     <ThemeToggleButton />
 
-                    <button type="button" className="user-chip" onClick={handleLogout}>
-                        {user.avatar ? (
-                            <img src={user.avatar} alt="user avatar" className="user-avatar" />
+                    <button
+                        type="button"
+                        className="user-profile-trigger"
+                        onClick={handleLogout}
+                        aria-label="로그아웃"
+                    >
+                        {user?.picture || user?.avatar ? (
+                            <img
+                                src={user.picture || user.avatar}
+                                alt="user avatar"
+                                className="header-avatar"
+                            />
                         ) : (
-                            <span className="user-avatar user-avatar-fallback">
-                                {user.name?.slice(0, 1).toUpperCase() || "U"}
+                            <span className="header-avatar-fallback">
+                                {user?.name?.slice(0, 1).toUpperCase() || "U"}
                             </span>
                         )}
                     </button>
@@ -147,7 +168,7 @@ export default function ProjectBrowserPage() {
                     <nav className="sidebar-nav">
                         <button
                             type="button"
-                            className="sidebar-item sidebar-item-active"
+                            className="sidebar-item active"
                             onClick={() => goDashboardMenu("active")}
                         >
                             <span>진행중 프로젝트</span>
@@ -216,7 +237,10 @@ export default function ProjectBrowserPage() {
                         </div>
 
                         <div className="project-browser-toolbar-right">
-                            <input className="search-input" placeholder="검색..." />
+                            <div className="search-container">
+                                <span className="search-icon">🔍</span>
+                                <input className="search-input" placeholder="검색..." />
+                            </div>
 
                             <select className="toolbar-select" defaultValue="보통 아이콘">
                                 <option>아주 큰 아이콘</option>

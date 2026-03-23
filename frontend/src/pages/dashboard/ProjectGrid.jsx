@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import ProjectCard from "./ProjectCard";
 
 function mapViewModeToClassName(viewMode) {
@@ -19,6 +20,30 @@ export default function ProjectGrid({
     onPermanentDelete,
     onOpenProject,
 }) {
+    const gridRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (gridRef.current && !gridRef.current.contains(event.target)) {
+                onToggleMenu(null);
+            }
+        }
+
+        function handleEscape(event) {
+            if (event.key === "Escape") {
+                onToggleMenu(null);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleEscape);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleEscape);
+        };
+    }, [onToggleMenu]);
+
     if (isLoading) {
         return (
             <div className="dashboard-empty-state">
@@ -38,23 +63,30 @@ export default function ProjectGrid({
     }
 
     return (
-        <div className={`project-grid view-${mapViewModeToClassName(viewMode)}`}>
-            {projects.map((project) => (
-                <ProjectCard
-                    key={project.id}
-                    project={project}
-                    activeMenu={activeMenu}
-                    isMenuOpen={openMenuProjectId === project.id}
-                    onToggleMenu={onToggleMenu}
-                    onRenameClick={onRenameClick}
-                    onShareClick={onShareClick}
-                    onMoveStatus={onMoveStatus}
-                    onMoveToTrash={onMoveToTrash}
-                    onDuplicate={onDuplicate}
-                    onPermanentDelete={onPermanentDelete}
-                    onOpenProject={onOpenProject}
-                />
-            ))}
+        <div
+            ref={gridRef}
+            className={`project-grid view-${mapViewModeToClassName(viewMode)}`}
+        >
+            {projects.map((project) => {
+                const projectId = project.id || project._id;
+
+                return (
+                    <ProjectCard
+                        key={projectId}
+                        project={project}
+                        activeMenu={activeMenu}
+                        isMenuOpen={openMenuProjectId === projectId}
+                        onToggleMenu={onToggleMenu}
+                        onRenameClick={onRenameClick}
+                        onShareClick={onShareClick}
+                        onMoveStatus={onMoveStatus}
+                        onMoveToTrash={onMoveToTrash}
+                        onDuplicate={onDuplicate}
+                        onPermanentDelete={onPermanentDelete}
+                        onOpenProject={onOpenProject}
+                    />
+                );
+            })}
         </div>
     );
 }

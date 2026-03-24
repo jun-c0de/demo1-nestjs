@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getProject } from "../../api/project";
@@ -43,16 +44,19 @@ function buildFolderPath(folders, folderId) {
 =======
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+=======
+import { useState } from "react";
+>>>>>>> parent of c5167a3 (canvas1)
 import AppShell from "../../components/layout/AppShell";
-import { useAuth } from "../../contexts/AuthContext";
-import EditorHeader from "../../components/editor/EditorHeader";
-import EditorLeftPanel from "../../components/editor/EditorLeftPanel";
+import EditorHeader from "../../components/editor/EditorHeader.jsx";
+import EditorLeftPanel from "../../components/editor/EditorLeftPanel.jsx/index.js";
 import EditorCanvas from "../../components/editor/EditorCanvas";
-import EditorRightPanel from "../../components/editor/EditorRightPanel";
+import EditorRightPanel from "../../components/editor/EditorRightPanel.jsx/index.js";
 import "../../styles/editor.css";
 >>>>>>> parent of d4bdec2 (Revert "canvas1")
 
 export default function ProjectEditorPage() {
+<<<<<<< HEAD
     const navigate = useNavigate();
     const { projectId, designId } = useParams();
 <<<<<<< HEAD
@@ -183,51 +187,22 @@ export default function ProjectEditorPage() {
             return "";
         });
     }
+=======
+    const [mode, setMode] = useState("module"); // module | drawing
+    const [view, setView] = useState("2D");
+>>>>>>> parent of c5167a3 (canvas1)
 
     return (
-        <AppShell
-            user={user}
-            activeMenu="active"
-            counts={{}}
-            onChangeMenu={() => { }}
-            onCreateClick={() => { }}
-            onLogout={logoutUser}
-            onGoDashboard={() => navigate("/dashboard")}
-        >
+        <AppShell>
             <div className="editor-page">
-                <EditorHeader
-                    breadcrumbs={breadcrumbItems}
-                    workspaceView={workspaceView}
-                    onChangeWorkspaceView={setWorkspaceView}
-                    cameraView={cameraView}
-                    onChangeCameraView={setCameraView}
-                    onGoDashboard={() => navigate("/dashboard")}
-                    onSave={() => alert("저장 기능은 다음 단계에서 연결합니다.")}
-                    onExit={() => navigate(`/projects/${projectId}`)}
-                />
+                <EditorHeader view={view} onChangeView={setView} />
 
                 <div className="editor-workspace">
-                    <EditorLeftPanel
-                        activeTab={leftTab}
-                        onChangeTab={setLeftTab}
-                        drawingFile={drawingFile}
-                        drawingImageUrl={drawingImageUrl}
-                        drawingLocked={drawingLocked}
-                        drawingOpacity={drawingOpacity}
-                        onUploadDrawing={handleUploadDrawing}
-                        onClearDrawing={handleClearDrawing}
-                        onToggleLocked={() => setDrawingLocked((prev) => !prev)}
-                        onChangeOpacity={setDrawingOpacity}
-                    />
+                    <EditorLeftPanel mode={mode} onChangeMode={setMode} />
 
-                    <EditorCanvas
-                        drawingImageUrl={drawingImageUrl}
-                        drawingOpacity={drawingOpacity}
-                        drawingLocked={drawingLocked}
-                        workspaceView={workspaceView}
-                        cameraView={cameraView}
-                    />
+                    <EditorCanvas view={view} />
 
+<<<<<<< HEAD
                     <EditorRightPanel
                         drawingFile={drawingFile}
                         drawingLocked={drawingLocked}
@@ -236,6 +211,9 @@ export default function ProjectEditorPage() {
                         cameraView={cameraView}
                     />
 >>>>>>> parent of d4bdec2 (Revert "canvas1")
+=======
+                    <EditorRightPanel />
+>>>>>>> parent of c5167a3 (canvas1)
                 </div>
 
                 <div className="project-editor-topbar__right">

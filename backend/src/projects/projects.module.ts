@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { ProjectService } from './project.service';
-import { ProjectController } from './project.controller';
+import { ProjectService } from './projects.service';
+import { ProjectController } from './projects.controller';
 import { Project, ProjectSchema } from './schemas/project.schema';
 import { Design, DesignSchema } from '../design/schemas/design.schema';
 import { Floorplan, FloorplanSchema } from '../floorplan/schemas/floorplan.schema';

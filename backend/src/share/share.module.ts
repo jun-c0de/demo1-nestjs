@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ShareService } from './share.service';
 import { ShareController } from './share.controller';
 import { Share, ShareSchema } from './schemas/share.schema';
-import { Project, ProjectSchema } from '../project/schemas/project.schema';
+import { Project, ProjectSchema } from '../projects/schemas/project.schema';
 import { User, UserSchema } from '../auth/schemas/user.schema';
 
 @Module({

@@ -6,7 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Floorplan } from './schemas/floorplan.schema';
-import { Project } from '../project/schemas/project.schema';
+import { Project } from '../projects/schemas/project.schema';
 import { CreateFloorplanDto } from './dto/create-floorplan.dto';
 import { CalibrateFloorplanDto } from './dto/calibrate-floorplan.dto';
 

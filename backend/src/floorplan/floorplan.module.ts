@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { FloorplanController } from './floorplan.controller';
 import { FloorplanService } from './floorplan.service';
 import { Floorplan, FloorplanSchema } from './schemas/floorplan.schema';
-import { Project, ProjectSchema } from '../project/schemas/project.schema';
+import { Project, ProjectSchema } from '../projects/schemas/project.schema';
 
 @Module({
     imports: [

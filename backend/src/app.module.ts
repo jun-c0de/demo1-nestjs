@@ -1,15 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './prisma/prisma.module';
 
 import { AuthModule } from './auth/auth.module';
-import { ProjectModule } from './project/project.module';
-import { DesignModule } from './design/design.module';
-import { ShareModule } from './share/share.module';
-import { FloorplanModule } from './floorplan/floorplan.module';
-import { RoomModule } from './room/room.module';
-import { MaterialModule } from './material/material.module';
-import { EstimateModule } from './estimate/estimate.module';
+import { UsersModule } from './users/users.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -17,20 +12,10 @@ import { EstimateModule } from './estimate/estimate.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get('MONGO_URI'),
-      }),
-    }),
+    PrismaModule,
     AuthModule,
-    ProjectModule,
-    DesignModule,
-    ShareModule,
-    FloorplanModule,
-    RoomModule,
-    MaterialModule,
-    EstimateModule,
+    UsersModule,
+    ProjectsModule,
   ],
 })
 export class AppModule { }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getProject } from "../../api/project";
@@ -42,6 +43,8 @@ function buildFolderPath(folders, folderId) {
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
+=======
+>>>>>>> parent of c5167a3 (canvas1)
 import { useState } from "react";
 import AppShell from "../../components/layout/AppShell";
 import EditorHeader from "../../components/editor/EditorHeader.jsx";
@@ -51,6 +54,7 @@ import EditorRightPanel from "../../components/editor/EditorRightPanel.jsx/index
 import "../../styles/editor.css";
 
 export default function ProjectEditorPage() {
+<<<<<<< HEAD
     const navigate = useNavigate();
     const { projectId, designId } = useParams();
     const { user, authLoading, logoutUser } = useAuth();
@@ -173,4 +177,24 @@ export default function ProjectEditorPage() {
                         </div>
                 </div >
                 );
+=======
+    const [mode, setMode] = useState("module"); // module | drawing
+    const [view, setView] = useState("2D");
+
+    return (
+        <AppShell>
+            <div className="editor-page">
+                <EditorHeader view={view} onChangeView={setView} />
+
+                <div className="editor-workspace">
+                    <EditorLeftPanel mode={mode} onChangeMode={setMode} />
+
+                    <EditorCanvas view={view} />
+
+                    <EditorRightPanel />
+                </div>
+            </div>
+        </AppShell>
+    );
+>>>>>>> parent of c5167a3 (canvas1)
 }

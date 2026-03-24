@@ -41,7 +41,6 @@ function buildFolderPath(folders, folderId) {
 }
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-=======
 import { useState } from "react";
 import { useState } from "react";
 import AppShell from "../../components/layout/AppShell";
@@ -54,7 +53,6 @@ import "../../styles/editor.css";
 export default function ProjectEditorPage() {
     const navigate = useNavigate();
     const { projectId, designId } = useParams();
-<<<<<<< HEAD
     const { user, authLoading, logoutUser } = useAuth();
     const [isLoading, setIsLoading] = useState(true);
 

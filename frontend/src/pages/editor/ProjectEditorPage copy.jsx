@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getProject } from "../../api/project";
@@ -41,22 +39,19 @@ function buildFolderPath(folders, folderId) {
 
     return path;
 }
-=======
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 =======
 import { useState } from "react";
->>>>>>> parent of c5167a3 (canvas1)
+import { useState } from "react";
 import AppShell from "../../components/layout/AppShell";
 import EditorHeader from "../../components/editor/EditorHeader.jsx";
 import EditorLeftPanel from "../../components/editor/EditorLeftPanel.jsx/index.js";
 import EditorCanvas from "../../components/editor/EditorCanvas";
 import EditorRightPanel from "../../components/editor/EditorRightPanel.jsx/index.js";
 import "../../styles/editor.css";
->>>>>>> parent of d4bdec2 (Revert "canvas1")
 
 export default function ProjectEditorPage() {
-<<<<<<< HEAD
     const navigate = useNavigate();
     const { projectId, designId } = useParams();
 <<<<<<< HEAD
@@ -138,100 +133,46 @@ export default function ProjectEditorPage() {
                     <div className="project-editor-breadcrumbs">
                         {breadcrumbItems.join(" > ")}
                     </div>
-=======
-    const { user, logoutUser } = useAuth();
+                    const [mode, setMode] = useState("module"); // module | drawing
+                    const [view, setView] = useState("2D");
 
-    const [leftTab, setLeftTab] = useState("drawing");
-    const [workspaceView, setWorkspaceView] = useState("2D");
-    const [cameraView, setCameraView] = useState("입면");
+                    return (
+                    <AppShell>
+                        <div className="editor-page">
+                            <EditorHeader view={view} onChangeView={setView} />
 
-    const [drawingFile, setDrawingFile] = useState(null);
-    const [drawingImageUrl, setDrawingImageUrl] = useState("");
-    const [drawingOpacity, setDrawingOpacity] = useState(0.9);
-    const [drawingLocked, setDrawingLocked] = useState(false);
+                            <div className="editor-workspace">
+                                <EditorLeftPanel mode={mode} onChangeMode={setMode} />
 
-    const breadcrumbItems = useMemo(
-        () => [
-            { key: "dashboard", label: "내 프로젝트" },
-            { key: "project", label: projectId || "프로젝트" },
-            { key: "design", label: designId || "디자인" },
-        ],
-        [projectId, designId]
-    );
+                                <EditorCanvas view={view} />
 
-    function handleUploadDrawing(file) {
-        if (!file) return;
+                                <EditorRightPanel
+                                    drawingFile={drawingFile}
+                                    drawingLocked={drawingLocked}
+                                    drawingOpacity={drawingOpacity}
+                                    workspaceView={workspaceView}
+                                    cameraView={cameraView}
+                                />
+                                <EditorRightPanel />
+                                <EditorRightPanel />
+                            </div >
 
-        if (!file.type.startsWith("image/")) {
-            alert("현재는 JPG, PNG 같은 이미지 파일만 업로드할 수 있습니다.");
-            return;
-        }
+                            <div className="project-editor-topbar__right">
+                                <button type="button" onClick={handleSave}>저장</button>
+                                <button type="button" onClick={handleExit}>저장하고 나가기</button>
+                                <button type="button" onClick={logoutUser}>로그아웃</button>
+                            </div>
+                        </header >
 
-        const nextUrl = URL.createObjectURL(file);
-        setDrawingFile(file);
-        setDrawingImageUrl((prev) => {
-            if (prev) {
-                URL.revokeObjectURL(prev);
-            }
-            return nextUrl;
-        });
-        setLeftTab("drawing");
-    }
+                        <div className="project-editor-explorer-bar">
+                            {breadcrumbItems.join(" > ")}
+                        </div>
 
-    function handleClearDrawing() {
-        setDrawingFile(null);
-        setDrawingImageUrl((prev) => {
-            if (prev) {
-                URL.revokeObjectURL(prev);
-            }
-            return "";
-        });
-    }
-=======
-    const [mode, setMode] = useState("module"); // module | drawing
-    const [view, setView] = useState("2D");
->>>>>>> parent of c5167a3 (canvas1)
-
-    return (
-        <AppShell>
-            <div className="editor-page">
-                <EditorHeader view={view} onChangeView={setView} />
-
-                <div className="editor-workspace">
-                    <EditorLeftPanel mode={mode} onChangeMode={setMode} />
-
-                    <EditorCanvas view={view} />
-
-<<<<<<< HEAD
-                    <EditorRightPanel
-                        drawingFile={drawingFile}
-                        drawingLocked={drawingLocked}
-                        drawingOpacity={drawingOpacity}
-                        workspaceView={workspaceView}
-                        cameraView={cameraView}
-                    />
->>>>>>> parent of d4bdec2 (Revert "canvas1")
-=======
-                    <EditorRightPanel />
->>>>>>> parent of c5167a3 (canvas1)
-                </div>
-
-                <div className="project-editor-topbar__right">
-                    <button type="button" onClick={handleSave}>저장</button>
-                    <button type="button" onClick={handleExit}>저장하고 나가기</button>
-                    <button type="button" onClick={logoutUser}>로그아웃</button>
-                </div>
-            </header>
-
-            <div className="project-editor-explorer-bar">
-                {breadcrumbItems.join(" > ")}
-            </div>
-
-            <div className="project-editor-layout">
-                <ProjectEditorSidebar />
-                <ProjectEditorCanvas />
-                <ProjectEditorInspector />
-            </div>
-        </div>
-    );
+                        <div className="project-editor-layout">
+                            <ProjectEditorSidebar />
+                            <ProjectEditorCanvas />
+                            <ProjectEditorInspector />
+                        </div>
+                </div >
+                );
 }

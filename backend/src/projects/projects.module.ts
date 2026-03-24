@@ -1,24 +1,12 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-
-import { ProjectService } from './projects.service';
-import { ProjectController } from './projects.controller';
-import { Project, ProjectSchema } from './schemas/project.schema';
-import { Design, DesignSchema } from '../design/schemas/design.schema';
-import { Floorplan, FloorplanSchema } from '../floorplan/schemas/floorplan.schema';
-import { Share, ShareSchema } from '../share/schemas/share.schema';
+import { ProjectsService } from './projects.service';
+import { ProjectsController } from './projects.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: Project.name, schema: ProjectSchema },
-      { name: Design.name, schema: DesignSchema },
-      { name: Floorplan.name, schema: FloorplanSchema },
-      { name: Share.name, schema: ShareSchema },
-    ]),
-  ],
-  controllers: [ProjectController],
-  providers: [ProjectService],
-  exports: [ProjectService],
+  imports: [PrismaModule],
+  controllers: [ProjectsController],
+  providers: [ProjectsService],
+  exports: [ProjectsService],
 })
-export class ProjectModule { }
+export class ProjectsModule { }

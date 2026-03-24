@@ -7,35 +7,27 @@ import { AuthService } from '../auth.service';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
-        private readonly configService: ConfigService,
+        configService: ConfigService,
         private readonly authService: AuthService,
     ) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: configService.get('JWT_ACCESS_SECRET')!,
+            secretOrKey: configService.get<string>('JWT_ACCESS_SECRET') || 'dev-secret',
         });
     }
 
-    async validate(payload: any): Promise<any> {
+    async validate(payload: { sub: string; email: string }) {
         const user = await this.authService.me(payload.sub);
 
         if (!user) {
-            throw new UnauthorizedException('인증되지 않은 사용자입니다.');
+            throw new UnauthorizedException();
         }
 
         return {
-            userId: user._id.toString(),
-            _id: user._id.toString(),
+            sub: user.id,
             email: user.email,
             name: user.name,
-            role: user.role,
-            provider: user.provider,
-            avatar: user.avatar || '',
-            picture: user.picture || user.avatar || '',
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
-            lastLoginAt: user.lastLoginAt || null,
         };
     }
 }
